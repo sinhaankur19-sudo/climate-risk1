@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Climate Credit Risk Intelligence Platform – EY</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e1117;--sidebar-bg:#090c12;--card-bg:#141820;--card-border:#1e2533;
+  --gold:#FFE600;--gold-dim:#c9b600;--text:#d4d8e2;--text-muted:#6b7280;--text-bright:#f0f2f6;
+  --green:#10b981;--red:#ef4444;--orange:#f97316;--blue:#3b82f6;--amber:#f59e0b;--purple:#8b5cf6;
+  --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;background:#07090f;border-bottom:1px solid #1a2030;padding:0 24px;height:56px;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:20px}
+.ey-logo{font-size:26px;font-weight:700;color:var(--gold);letter-spacing:-1px}
+.topbar-title{border-left:1px solid #2a3040;padding-left:16px}
+.topbar-title h1{font-size:14px;font-weight:600;color:var(--text-bright);letter-spacing:.5px}
+.topbar-title p{font-size:10px;color:var(--text-muted);margin-top:1px}
+.topbar-right{display:flex;align-items:center;gap:12px;font-size:11px}
+.pill{display:flex;align-items:center;gap:6px;background:#141820;border:1px solid var(--card-border);padding:4px 12px;border-radius:20px;font-size:11px;cursor:pointer}
+.pill select{background:none;border:none;color:var(--gold);font-family:var(--font);font-size:11px;outline:none;cursor:pointer}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.shell{display:flex;flex:1;height:calc(100vh - 56px);overflow:hidden}
+.sidebar{width:200px;flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid #1a2030;display:flex;flex-direction:column;padding:16px 0;overflow-y:auto}
+.nav-section{padding:6px 16px;font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-top:12px}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:#8899aa;padding:10px 20px;cursor:pointer;font-family:var(--font);font-size:12px;text-align:left;transition:all .2s}
+.nav-btn:hover{background:#141820;color:var(--text-bright)}
+.nav-btn.active{background:#1a2235;color:var(--gold);border-left:3px solid var(--gold)}
+.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:#1f2937;color:var(--text-muted);font-size:9px;padding:1px 5px;border-radius:10px}
+.nav-badge.alert{background:rgba(239,68,68,.15);color:var(--red)}
+.main{flex:1;overflow-y:auto;padding:20px 22px}
+.screen{display:none}.screen.active{display:block}
+.scenario-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:11px;color:var(--text-muted);flex-wrap:wrap}
+.scenario-bar h2{font-size:15px;font-weight:600;color:var(--text-bright);flex:1;margin:0}
+.chip{background:rgba(255,230,0,.1);color:var(--gold);border:1px solid rgba(255,230,0,.2);padding:3px 10px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.5px;cursor:pointer}
+.chip-blue{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
+.select-pill{display:flex;align-items:center;gap:6px;background:var(--card-bg);border:1px solid var(--card-border);padding:6px 12px;border-radius:6px;font-size:11px;color:var(--text)}
+.select-pill select{background:none;border:none;color:var(--text);font-family:var(--font);font-size:11px;outline:none;cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.kpi{background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s}
+.kpi:hover{transform:translateY(-1px)}
+.kpi.amber{border-top:2px solid #b45309}.kpi.red-t{border-top:2px solid #991b1b}
+.kpi.gold-t{border-top:2px solid var(--gold-dim)}.kpi.blue-t{border-top:2px solid #1d4ed8}
+.kpi label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px}
+.kpi .val{font-size:24px;font-weight:700;font-family:var(--mono);line-height:1;transition:all .3s}
+.kpi.amber .val{color:#f97316}.kpi.red-t .val{color:#f87171}.kpi.gold-t .val{color:var(--gold)}.kpi.blue-t .val{color:#60a5fa}
+.kpi .sub{font-size:10px;color:var(--text-muted);margin-top:5px}
+.kpi .trend{font-size:10px;margin-top:4px}.kpi .trend.up{color:var(--red)}.kpi .trend.dn{color:var(--green)}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.grid-1-1{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:8px;padding:16px}
+.card h3{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h3 .count{background:#1f2937;color:var(--text-muted);font-size:9px;padding:1px 6px;border-radius:10px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);padding:6px 8px;border-bottom:1px solid var(--card-border);text-align:left}
+.tbl td{padding:8px 8px;border-bottom:1px solid #151c26}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#161d2a}
+.tbl .up{color:#f87171;font-weight:600;font-family:var(--mono)}
+.tbl .dn{color:var(--green);font-weight:600;font-family:var(--mono)}
+.tbl .neutral{color:var(--gold);font-weight:600;font-family:var(--mono)}
+.badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:600;letter-spacing:.4px}
+.badge.high{background:rgba(239,68,68,.15);color:#f87171}
+.badge.med{background:rgba(249,115,22,.15);color:#fb923c}
+.badge.low{background:rgba(16,185,129,.15);color:#34d399}
+.badge.mod{background:rgba(59,130,246,.15);color:#60a5fa}
+.dot-list{list-style:none}
+.dot-list li{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid #151c26}
+.dot-list li:last-child{border-bottom:none}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-list li .right{margin-left:auto;font-family:var(--mono);font-size:11px}
+.ai-section{background:#071a14;border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:16px;margin-top:14px}
+.ai-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.ai-insight-row{display:flex;gap:8px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(16,185,129,.1);font-size:12px;line-height:1.6}
+.ai-insight-row:last-child{border-bottom:none}
+.ai-icon{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.ai-icon.warn{background:rgba(249,115,22,.15)}.ai-icon.info{background:rgba(59,130,246,.15)}.ai-icon.crit{background:rgba(239,68,68,.15)}.ai-icon.ok{background:rgba(16,185,129,.15)}
+.ai-tag{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:4px}
+.ai-tag.up{background:rgba(239,68,68,.2);color:#f87171}
+.ai-tag.dn{background:rgba(16,185,129,.2);color:#34d399}
+.heatmap-placeholder{width:100%;height:180px;border-radius:6px;overflow:hidden;position:relative;background:#0a1628}
+.heatmap-legend{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.heatmap-legend span{font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.heatmap-legend span::before{content:'';width:12px;height:8px;border-radius:2px;display:inline-block}
+.leg-low::before{background:#1e4d8c}.leg-mod::before{background:#d97706}.leg-high::before{background:#b91c1c}.leg-crit::before{background:#4c0000}
+input[type=range]{width:100%;accent-color:var(--gold);background:var(--card-border);border-radius:4px;height:4px;-webkit-appearance:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold)}
+.chart-wrap{position:relative}.chart-wrap canvas{max-height:230px}
+.prog-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px}
+.prog-row .lbl{width:100px;flex-shrink:0;color:var(--text-muted)}
+.prog-bar{flex:1;height:5px;background:#1e2533;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s}
+.prog-row .pct{width:36px;text-align:right;font-family:var(--mono);font-size:10px}
+.cp-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cp-logo{width:42px;height:42px;border-radius:8px;background:#1a2030;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--gold)}
+.cp-info h3{font-size:15px;font-weight:600;color:var(--text-bright)}
+.cp-info p{font-size:11px;color:var(--text-muted)}
+.sdiv{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:4px 0 8px;border-bottom:1px solid var(--card-border);margin-bottom:12px}
+.slider-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.slider-val{font-family:var(--mono);color:var(--gold);font-weight:600}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
+.credit-score-ring{display:flex;justify-content:center;align-items:center;position:relative;margin:10px auto}
+.score-label{position:absolute;text-align:center}
+.score-label .score-num{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--gold)}
+.score-label .score-txt{font-size:10px;color:var(--text-muted)}
+.rating-chip{display:inline-block;padding:4px 12px;border-radius:6px;font-size:14px;font-weight:700;font-family:var(--mono)}
+.rating-chip.A{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.rating-chip.BBB{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.rating-chip.BB{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.3)}
+.rating-chip.B{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.transition-highlight{animation:flash .5s ease}
+@keyframes flash{0%{background:rgba(255,230,0,.15)}100%{background:transparent}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="ey-logo">EY</div>
+    <div class="topbar-title">
+      <h1><span style="color:var(--gold)">CLIMATE</span> CREDIT RISK INTELLIGENCE PLATFORM</h1>
+      <p>AI Powered Climate Risk Integration for Banks &nbsp;·&nbsp; v3.0.0</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="pill"><div class="live-dot"></div> Live</div>
+    <div class="pill" id="clockPill">🕐 --:-- IST</div>
+    <div class="pill">Bank A Portfolio</div>
+    <div class="pill" style="background:rgba(255,230,0,.08);border-color:rgba(255,230,0,.2);color:var(--gold)">
+      Scenario: <select id="globalScenario" onchange="applyGlobalScenario()" style="background:none;border:none;color:var(--gold);font-family:var(--font);font-size:11px;outline:none;cursor:pointer;margin-left:4px">
+        <option value="baseline">Baseline</option>
+        <option value="below2_immediate">Below 2°C Immediate</option>
+        <option value="below2_delayed" selected>Below 2°C Delayed</option>
+        <option value="netzero">Net Zero 2050</option>
+        <option value="fragmented">Fragmented World</option>
+      </select>
+    </div>
+    <div class="pill">Demo User ▾</div>
+  </div>
+</header>
+
+<div class="shell">
+<nav class="sidebar">
+  <div class="nav-section">Dashboard</div>
+  <button class="nav-btn active" onclick="showTab('overview',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" onclick="showTab('counterparty',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+    Counterparty <span class="nav-badge alert">4</span>
+  </button>
+  <button class="nav-btn" onclick="showTab('transition',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/></svg>
+    Transition
+  </button>
+  <button class="nav-btn" onclick="showTab('physical',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+    Physical Risk <span class="nav-badge">3</span>
+  </button>
+  <div class="nav-section">Analysis</div>
+  <button class="nav-btn" onclick="showTab('stress',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+    Stress Testing
+  </button>
+  <button class="nav-btn" onclick="showTab('ai',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+    Intelligence
+  </button>
+  <div class="nav-section">Reports</div>
+  <button class="nav-btn" onclick="showTab('strategy',this)">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+    Strategy
+  </button>
+</nav>
+
+<main class="main">
+
+<!-- ══════════ OVERVIEW ══════════ -->
+<div id="overview" class="screen active">
+  <div class="scenario-bar">
+    <h2>Portfolio Overview</h2>
+    <div class="chip" id="activeScenarioChip">📅 Scenario: Below 2°C Delayed</div>
+    <span class="chip chip-blue">Currency: USD</span>
+    <span class="chip" style="background:rgba(16,185,129,.08);color:var(--green);border-color:rgba(16,185,129,.2)">Bank A Portfolio</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 310px;gap:14px;margin-bottom:14px">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Portfolio Climate &amp; Transition Risk Exposure</h3>
+        <div class="kpis">
+          <div class="kpi amber"><label>PD Increase – Climate Risk</label><div class="val" id="ov-pd">+2.3%</div><div class="trend up" id="ov-pd-t">▲ +0.4% vs prev qtr</div></div>
+          <div class="kpi red-t"><label>LGD Increase – Climate Risk</label><div class="val" id="ov-lgd">+3.1%</div><div class="trend up" id="ov-lgd-t">▲ +0.6% vs prev qtr</div></div>
+          <div class="kpi gold-t"><label>Expected Loss Impact</label><div class="val" id="ov-el">+$84.2M</div><div class="trend up" id="ov-el-t">▲ $9.3M vs prev qtr</div></div>
+          <div class="kpi blue-t"><label>RWA Impact</label><div class="val" id="ov-rwa">+$520M</div><div class="trend up" id="ov-rwa-t">▲ $45M vs prev qtr</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="sectorChart"></canvas></div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>Top High-Risk Sectors</h3>
+          <ul class="dot-list">
+            <li><span class="dot" style="background:#ef4444"></span>Energy<span class="right badge high">Critical</span></li>
+            <li><span class="dot" style="background:#f97316"></span>Real Estate<span class="right badge med">High</span></li>
+            <li><span class="dot" style="background:#f59e0b"></span>Utilities<span class="right badge med">High</span></li>
+            <li><span class="dot" style="background:#3b82f6"></span>Transport<span class="right badge mod">Med</span></li>
+            <li><span class="dot" style="background:#6b7280"></span>Mining<span class="right badge mod">Med</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Top High-Risk Geographies</h3>
+          <ul class="dot-list">
+            <li><span class="dot" style="background:#ef4444"></span>Asia<span class="right up" id="ov-geo-asia">+42% EL</span></li>
+            <li><span class="dot" style="background:#f97316"></span>United States<span class="right up" id="ov-geo-us">+27% EL</span></li>
+            <li><span class="dot" style="background:#f59e0b"></span>Brazil<span class="right up">+23% EL</span></li>
+            <li><span class="dot" style="background:#3b82f6"></span>India<span class="right neutral">+18% EL</span></li>
+            <li><span class="dot" style="background:#6b7280"></span>Middle East<span class="right dn">+11% EL</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Top High-Risk Counterparties</h3>
+          <ul class="dot-list" id="ov-cp-list">
+            <li>Chevron<span class="right up">+4.5%</span></li>
+            <li>PG&amp;E<span class="right up">+3.9%</span></li>
+            <li>TotalEnergies<span class="right up">+3.7%</span></li>
+            <li>Rio Tinto<span class="right up">+3.4%</span></li>
+            <li>Shell<span class="right up">+3.1%</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Counterparty Exposure Table -->
+      <div class="card" style="margin-bottom:14px">
+        <h3>Counterparty Exposure &amp; Credit Ratings</h3>
+        <table class="tbl">
+          <tr><th>Counterparty</th><th>Sector</th><th>Exposure (₹ Cr)</th><th>ICRA Rating</th><th>PD Impact</th><th>EL Impact</th><th>Risk Level</th></tr>
+          <tr><td><b>Chevron</b></td><td>Oil &amp; Gas</td><td>₹4,200 Cr</td><td><span class="rating-chip A">A–</span></td><td class="up">+4.5%</td><td class="up">$454M</td><td><span class="badge high">Critical</span></td></tr>
+          <tr><td><b>PG&amp;E</b></td><td>Utilities</td><td>₹2,800 Cr</td><td><span class="rating-chip BB">BB+</span></td><td class="up">+3.9%</td><td class="up">$267M</td><td><span class="badge high">High</span></td></tr>
+          <tr><td><b>TotalEnergies</b></td><td>Oil &amp; Gas</td><td>₹5,100 Cr</td><td><span class="rating-chip A">A</span></td><td class="up">+3.7%</td><td class="up">$525M</td><td><span class="badge high">High</span></td></tr>
+          <tr><td><b>Rio Tinto</b></td><td>Mining</td><td>₹3,400 Cr</td><td><span class="rating-chip A">A–</span></td><td class="up">+3.4%</td><td class="up">$312M</td><td><span class="badge med">Med-High</span></td></tr>
+          <tr><td><b>Shell</b></td><td>Oil &amp; Gas</td><td>₹3,900 Cr</td><td><span class="rating-chip A">A–</span></td><td class="up">+3.1%</td><td class="up">$289M</td><td><span class="badge med">Med-High</span></td></tr>
+          <tr><td><b>Exxon Mobil</b></td><td>Oil &amp; Gas</td><td>₹6,200 Cr</td><td><span class="rating-chip A">A+</span></td><td class="up">+2.8%</td><td class="up">$392M</td><td><span class="badge med">Med</span></td></tr>
+          <tr><td><b>Adani Green</b></td><td>Renewables</td><td>₹2,100 Cr</td><td><span class="rating-chip BBB">BBB+</span></td><td class="dn">–0.5%</td><td class="dn">–$18M</td><td><span class="badge low">Low</span></td></tr>
+          <tr><td><b>NTPC</b></td><td>Utilities</td><td>₹1,800 Cr</td><td><span class="rating-chip A">AA–</span></td><td class="neutral">+1.2%</td><td class="neutral">$45M</td><td><span class="badge mod">Low-Med</span></td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Sector Risk Exposure Over Time &nbsp;<span style="font-family:var(--mono);color:var(--green);font-size:10px;text-transform:none" id="sectorPerfChange">CHANGE LAST 90D ▲ +12.8%</span></h3>
+        <div class="chart-wrap"><canvas id="sectorPerfChart"></canvas></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <h3>Portfolio Exposure Heatmap <span id="hmScenarioTag" style="text-transform:none;letter-spacing:0;font-weight:600;font-size:9px;color:var(--gold);background:rgba(255,230,0,.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(255,230,0,.15)">Below 2°C Delayed</span></h3>
+        <div id="choroplethMap" style="width:100%;height:190px;border-radius:6px;overflow:hidden;background:#0d1824;position:relative;">
+          <svg id="worldMapSVG" style="width:100%;height:100%;display:block;"></svg>
+          <div id="mapTooltip" style="display:none;position:absolute;background:#0d1824;border:1px solid #1e2533;border-radius:5px;padding:7px 10px;font-size:10px;color:#d4d8e2;pointer-events:none;z-index:10;min-width:140px;line-height:1.6"></div>
+        </div>
+        <div class="heatmap-legend" style="margin-top:6px">
+          <span class="leg-low">Low</span>
+          <span class="leg-mod">Moderate</span>
+          <span class="leg-high">High</span>
+          <span class="leg-crit">Critical</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>AI Important Insights <span class="count">3</span></h3>
+        <table class="tbl" style="margin-bottom:10px">
+          <tr><th>Counterparty</th><th>Sector</th><th>PD Risk</th><th>EL Impact</th></tr>
+          <tr><td>Chevron</td><td style="color:var(--text-muted)">Oil &amp; Gas</td><td class="up">+4.5%</td><td class="up">$454M</td></tr>
+          <tr><td>PG&amp;E</td><td style="color:var(--text-muted)">Utilities</td><td class="up">+3.9%</td><td class="up">$267M</td></tr>
+          <tr><td>TotalEnergies</td><td style="color:var(--text-muted)">Oil &amp; Gas</td><td class="up">+3.7%</td><td class="up">$525M</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Counterparty Risk Ranking</h3>
+        <div class="ai-insight-row"><div class="ai-icon warn">⚠️</div><div style="font-size:11px;line-height:1.5">Energy sector exposure in Asia <strong style="color:#fbbf24" id="ov-asia-insight">+42% increase</strong> in expected loss under current scenario <span class="ai-tag up">+420</span></div></div>
+        <div class="ai-insight-row"><div class="ai-icon info">🔵</div><div style="font-size:11px;line-height:1.5">Real Estate in US sees <strong style="color:#fbbf24">27% rise</strong> in PD due to transition risk <span class="ai-tag dn">+768</span></div></div>
+        <div class="ai-insight-row"><div class="ai-icon crit">🔴</div><div style="font-size:11px;line-height:1.5">Chevron EL increases <strong style="color:#fbbf24" id="ov-chev-insight">$32.5M</strong> in current scenario, carbon cost primary driver</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ COUNTERPARTY ══════════ -->
+<div id="counterparty" class="screen">
+  <div class="scenario-bar">
+    <h2>Counterparty Climate Risk Analysis</h2>
+    <div class="select-pill">
+      <select id="cpSelect" onchange="updateCounterparty()">
+        <option value="chevron">Chevron</option>
+        <option value="exxon">Exxon Mobil</option>
+        <option value="total">TotalEnergies</option>
+        <option value="shell">Shell</option>
+        <option value="pge">PG&amp;E</option>
+        <option value="rio">Rio Tinto</option>
+        <option value="adani">Adani Green</option>
+        <option value="ntpc">NTPC</option>
+      </select>
+    </div>
+    <div class="select-pill">
+      <select id="cpScenario" onchange="updateCounterparty()">
+        <option value="baseline">Baseline</option>
+        <option value="below2_immediate">Below 2°C Immediate</option>
+        <option value="below2_delayed" selected>Below 2°C Delayed</option>
+        <option value="netzero">Net Zero 2050</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="cp-header">
+      <div class="cp-logo" id="cpLogo">CHV</div>
+      <div class="cp-info">
+        <h3 id="cpName">Chevron Corporation</h3>
+        <p id="cpMeta">Oil &amp; Gas · United States · NYSE · ICRA: A– · Outlook: Negative</p>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <span class="badge high" id="cpRiskBadge">High Climate Risk</span>
+        <span class="badge med" id="cpWatchBadge">Watch List</span>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi amber"><label>Revenue</label><div class="val" id="cp-rev">$77B</div><div class="sub" id="cp-rev-sub">FY 2024</div></div>
+      <div class="kpi red-t"><label>EBITDA</label><div class="val" id="cp-ebitda">$11B</div><div class="sub" id="cp-ebitda-sub">14.7% margin</div></div>
+      <div class="kpi gold-t"><label>Carbon Intensity</label><div class="val" id="cp-ci">0.42</div><div class="sub">tCO₂e / $M revenue</div></div>
+      <div class="kpi blue-t"><label>Scope 1+2 Emissions</label><div class="val" id="cp-em">51 Mt</div><div class="sub">CO₂e annually</div></div>
+    </div>
+  </div>
+
+  <div class="grid-2-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Revenue Projection Under Climate Scenarios</h3>
+      <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Risk Breakdown</h3>
+      <div class="sdiv">Transition Risk</div>
+      <div class="prog-row"><span class="lbl">Carbon Tax</span><div class="prog-bar"><div class="prog-fill" id="pb-carbon" style="width:78%;background:#ef4444"></div></div><span class="pct up" id="pb-carbon-v">78%</span></div>
+      <div class="prog-row"><span class="lbl">Asset Stranding</span><div class="prog-bar"><div class="prog-fill" id="pb-strand" style="width:65%;background:#f97316"></div></div><span class="pct up" id="pb-strand-v">65%</span></div>
+      <div class="prog-row"><span class="lbl">Policy Risk</span><div class="prog-bar"><div class="prog-fill" id="pb-policy" style="width:52%;background:#f59e0b"></div></div><span class="pct neutral" id="pb-policy-v">52%</span></div>
+      <div class="sdiv" style="margin-top:10px">Physical Risk</div>
+      <div class="prog-row"><span class="lbl">Flood</span><div class="prog-bar"><div class="prog-fill" id="pb-flood" style="width:41%;background:#3b82f6"></div></div><span class="pct neutral" id="pb-flood-v">41%</span></div>
+      <div class="prog-row"><span class="lbl">Heat Stress</span><div class="prog-bar"><div class="prog-fill" id="pb-heat" style="width:33%;background:#60a5fa"></div></div><span class="pct neutral" id="pb-heat-v">33%</span></div>
+      <div class="prog-row"><span class="lbl">Water Scarcity</span><div class="prog-bar"><div class="prog-fill" id="pb-water" style="width:24%;background:#93c5fd"></div></div><span class="pct neutral" id="pb-water-v">24%</span></div>
+    </div>
+  </div>
+
+  <div class="grid-1-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>PD &amp; LGD Trajectory Under Scenarios</h3>
+      <div class="chart-wrap"><canvas id="cpRiskChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Credit Metrics by Scenario</h3>
+      <table class="tbl" id="cpMetricsTable">
+        <tr><th>Metric</th><th>Baseline</th><th>Below 2°C</th><th>Net Zero</th></tr>
+        <tr><td>PD (%)</td><td>1.2%</td><td class="up">3.4%</td><td class="up">5.7%</td></tr>
+        <tr><td>LGD (%)</td><td>35%</td><td class="up">41%</td><td class="up">48%</td></tr>
+        <tr><td>EL ($M)</td><td>$42M</td><td class="up">$139M</td><td class="up">$274M</td></tr>
+        <tr><td>RWA ($M)</td><td>$210M</td><td class="up">$480M</td><td class="up">$810M</td></tr>
+        <tr><td>Capital Req.</td><td>$33M</td><td class="up">$77M</td><td class="up">$130M</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ai-section" id="cpAISection">
+    <div class="ai-section-title">🤖 AI Intelligence – Counterparty Deep Dive</div>
+    <div id="cpAIContent"></div>
+  </div>
+</div>
+
+<!-- ══════════ TRANSITION ══════════ -->
+<div id="transition" class="screen">
+  <div class="scenario-bar">
+    <h2>Transition Risk Simulation</h2>
+    <div class="select-pill">
+      <select id="transScenario" onchange="updateTransition()">
+        <option value="baseline">Baseline</option>
+        <option value="below2_immediate">Below 2°C Immediate</option>
+        <option value="below2_delayed" selected>Below 2°C Delayed</option>
+        <option value="netzero">Net Zero 2050</option>
+        <option value="fragmented">Fragmented World</option>
+      </select>
+    </div>
+    <div class="select-pill">
+      <select id="transSector" onchange="updateTransition()">
+        <option value="all">All Sectors</option>
+        <option value="energy">Energy</option>
+        <option value="utilities">Utilities</option>
+        <option value="mining">Mining</option>
+        <option value="transport">Transport</option>
+        <option value="realestate">Real Estate</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi red-t"><label>Revenue Change</label><div class="val" id="tr-rev">–7%</div><div class="trend up" id="tr-rev-t">Sector avg –5.2%</div></div>
+    <div class="kpi red-t"><label>EBITDA Change</label><div class="val" id="tr-ebitda">–10%</div><div class="sub" id="tr-ebitda-t">Margin compression</div></div>
+    <div class="kpi amber"><label>Sector Margin Impact</label><div class="val" id="tr-margin">–6%</div><div class="sub" id="tr-margin-t">Energy sector avg</div></div>
+    <div class="kpi gold-t"><label>Carbon Price</label><div class="val" id="tr-cp">$145/t</div><div class="sub" id="tr-cp-t">2035 projection</div></div>
+  </div>
+
+  <div class="grid-2-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Sector Margin Compression by Scenario</h3>
+      <div class="chart-wrap"><canvas id="transitionChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Sector Vulnerability Matrix</h3>
+      <table class="tbl" id="sectorVulnTable">
+        <tr><th>Sector</th><th>Rev. Impact</th><th>EBITDA</th><th>Risk</th></tr>
+        <tr><td>Energy</td><td class="up" id="sv-en-rev">–18%</td><td class="up" id="sv-en-eb">–24%</td><td><span class="badge high">Critical</span></td></tr>
+        <tr><td>Utilities</td><td class="up" id="sv-ut-rev">–12%</td><td class="up" id="sv-ut-eb">–15%</td><td><span class="badge high">High</span></td></tr>
+        <tr><td>Mining</td><td class="up" id="sv-mn-rev">–9%</td><td class="up" id="sv-mn-eb">–11%</td><td><span class="badge med">High</span></td></tr>
+        <tr><td>Transport</td><td class="up" id="sv-tr-rev">–7%</td><td class="up" id="sv-tr-eb">–8%</td><td><span class="badge med">Med</span></td></tr>
+        <tr><td>Real Estate</td><td class="up" id="sv-re-rev">–4%</td><td class="up" id="sv-re-eb">–5%</td><td><span class="badge mod">Med</span></td></tr>
+        <tr><td>Financials</td><td class="dn" id="sv-fi-rev">+1%</td><td class="dn" id="sv-fi-eb">+2%</td><td><span class="badge low">Low</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Borrower Level Impact -->
+  <div class="card" style="margin-bottom:14px">
+    <h3>Borrower-Level Impact Under Current Scenario</h3>
+    <table class="tbl" id="borrowerTable">
+      <tr><th>Borrower</th><th>Sector</th><th>Exposure</th><th>Rev. Impact</th><th>PD Change</th><th>EL Change</th><th>Rating Pressure</th></tr>
+      <tr><td><b>Chevron</b></td><td>Oil &amp; Gas</td><td>₹4,200 Cr</td><td class="up" id="bl-chev-rev">–14%</td><td class="up" id="bl-chev-pd">+3.2%</td><td class="up" id="bl-chev-el">+$89M</td><td><span class="badge high" id="bl-chev-rat">Downgrade Risk</span></td></tr>
+      <tr><td><b>TotalEnergies</b></td><td>Oil &amp; Gas</td><td>₹5,100 Cr</td><td class="up" id="bl-tot-rev">–12%</td><td class="up" id="bl-tot-pd">+2.9%</td><td class="up" id="bl-tot-el">+$94M</td><td><span class="badge med" id="bl-tot-rat">Watch</span></td></tr>
+      <tr><td><b>PG&amp;E</b></td><td>Utilities</td><td>₹2,800 Cr</td><td class="up" id="bl-pge-rev">–9%</td><td class="up" id="bl-pge-pd">+2.1%</td><td class="up" id="bl-pge-el">+$41M</td><td><span class="badge med" id="bl-pge-rat">Watch</span></td></tr>
+      <tr><td><b>Rio Tinto</b></td><td>Mining</td><td>₹3,400 Cr</td><td class="up" id="bl-rio-rev">–7%</td><td class="up" id="bl-rio-pd">+1.8%</td><td class="up" id="bl-rio-el">+$38M</td><td><span class="badge mod" id="bl-rio-rat">Stable</span></td></tr>
+      <tr><td><b>NTPC</b></td><td>Utilities</td><td>₹1,800 Cr</td><td class="neutral" id="bl-ntpc-rev">–4%</td><td class="neutral" id="bl-ntpc-pd">+1.1%</td><td class="neutral" id="bl-ntpc-el">+$12M</td><td><span class="badge mod" id="bl-ntpc-rat">Stable</span></td></tr>
+      <tr><td><b>Adani Green</b></td><td>Renewables</td><td>₹2,100 Cr</td><td class="dn" id="bl-adani-rev">+8%</td><td class="dn" id="bl-adani-pd">–0.4%</td><td class="dn" id="bl-adani-el">–$9M</td><td><span class="badge low" id="bl-adani-rat">Upgrade Likely</span></td></tr>
+    </table>
+  </div>
+
+  <div class="grid-1-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Carbon Price Trajectory by Scenario</h3>
+      <div class="chart-wrap"><canvas id="carbonChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Stranded Asset Risk ($B) by Sector</h3>
+      <div class="chart-wrap"><canvas id="strandedChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">🤖 AI Intelligence – Transition Risk</div>
+    <div id="transAIContent"></div>
+  </div>
+</div>
+
+<!-- ══════════ PHYSICAL ══════════ -->
+<div id="physical" class="screen">
+  <div class="scenario-bar">
+    <h2>Physical Climate Risk Impact</h2>
+    <div class="select-pill">
+      <select id="physHazard" onchange="updatePhysical()">
+        <option value="all">All Hazards</option>
+        <option value="flood">Flood</option>
+        <option value="heat">Heat Stress</option>
+        <option value="wildfire">Wildfire</option>
+        <option value="storm">Storm / Cyclone</option>
+        <option value="sealevel">Sea Level Rise</option>
+      </select>
+    </div>
+    <div class="select-pill">
+      <select id="physRCP" onchange="updatePhysical()">
+        <option value="rcp85">RCP 8.5 (Worst)</option>
+        <option value="rcp45">RCP 4.5 (Moderate)</option>
+        <option value="rcp26">RCP 2.6 (Optimistic)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi red-t"><label>Asset Damage (Avg)</label><div class="val" id="ph-dam">29%</div><div class="sub" id="ph-dam-s">Across exposed portfolio</div></div>
+    <div class="kpi amber"><label>PD Shift</label><div class="val" id="ph-pd">+5.7%</div><div class="trend up" id="ph-pd-t">▲ Physical hazard driven</div></div>
+    <div class="kpi gold-t"><label>LGD Shift</label><div class="val" id="ph-lgd">+2.1%</div><div class="sub" id="ph-lgd-s">Collateral degradation</div></div>
+    <div class="kpi blue-t"><label>Collateral Value Loss</label><div class="val" id="ph-col">–18%</div><div class="trend up" id="ph-col-t">▲ Real estate primary</div></div>
+  </div>
+
+  <div class="grid-2-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Asset Value Degradation Over Time</h3>
+      <div class="chart-wrap"><canvas id="physicalChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Hazard Exposure by Region</h3>
+      <table class="tbl" id="hazardRegionTable">
+        <tr><th>Region</th><th id="ph-col1">Flood</th><th id="ph-col2">Heat</th><th id="ph-col3">Storm</th></tr>
+        <tr><td>Asia Pacific</td><td class="up">High</td><td class="up">High</td><td class="up">Critical</td></tr>
+        <tr><td>N. America</td><td class="neutral">Med</td><td class="up">High</td><td class="neutral">Med</td></tr>
+        <tr><td>S. America</td><td class="up">High</td><td class="neutral">Med</td><td class="neutral">Med</td></tr>
+        <tr><td>Europe</td><td class="neutral">Med</td><td class="neutral">Med</td><td class="neutral">Med</td></tr>
+        <tr><td>Middle East</td><td class="dn">Low</td><td class="up">Critical</td><td class="dn">Low</td></tr>
+        <tr><td>Africa</td><td class="neutral">Med</td><td class="up">High</td><td class="dn">Low</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h3 id="physRadarTitle">Physical Risk by Sector &amp; Hazard Type (All Hazards · RCP 8.5)</h3>
+    <div class="chart-wrap"><canvas id="physRadarChart" height="90"></canvas></div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">🤖 AI Intelligence – Physical Risk</div>
+    <div id="physAIContent"></div>
+  </div>
+</div>
+
+<!-- ══════════ STRESS TESTING ══════════ -->
+<div id="stress" class="screen">
+  <div class="scenario-bar"><h2>Portfolio Stress Testing</h2></div>
+
+  <div class="grid-1-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Stress Parameters</h3>
+      <div class="slider-row"><span>Carbon Price ($/tonne)</span><span class="slider-val" id="cprice">$120</span></div>
+      <input type="range" min="0" max="300" value="120" id="carbonSlider" oninput="updateStress()">
+      <div class="slider-row" style="margin-top:14px"><span>Temperature Scenario</span><span class="slider-val" id="tempval">2.0°C</span></div>
+      <input type="range" min="15" max="45" value="20" id="tempSlider" oninput="updateStress()">
+      <div class="slider-row" style="margin-top:14px"><span>Time Horizon (years)</span><span class="slider-val" id="horizval">15 yrs</span></div>
+      <input type="range" min="1" max="30" value="15" id="horizSlider" oninput="updateStress()">
+      <div class="slider-row" style="margin-top:14px"><span>Portfolio Concentration (%)</span><span class="slider-val" id="concval">40%</span></div>
+      <input type="range" min="10" max="80" value="40" id="concSlider" oninput="updateStress()">
+    </div>
+    <div class="card">
+      <h3>Scenario Comparison Table</h3>
+      <table class="tbl">
+        <tr><th>Scenario</th><th>Carbon $</th><th>EL Impact</th><th>Capital</th><th>RWA</th></tr>
+        <tr><td>Mild</td><td class="dn">$60/t</td><td class="up">$42M</td><td class="up">$280M</td><td class="up">+3%</td></tr>
+        <tr><td>Moderate</td><td class="neutral">$120/t</td><td class="up">$84M</td><td class="up">$520M</td><td class="up">+6%</td></tr>
+        <tr id="activeStressRow" style="background:rgba(255,230,0,.04)"><td style="color:var(--gold)">▶ Active</td><td class="neutral" id="st-active-cp">$145/t</td><td class="up" id="st-active-el">$110M</td><td class="up" id="st-active-cap">$680M</td><td class="up" id="st-active-rwa">+8%</td></tr>
+        <tr><td>Severe</td><td class="up">$200/t</td><td class="up">$162M</td><td class="up">$940M</td><td class="up">+12%</td></tr>
+        <tr><td>Extreme</td><td class="up">$300/t</td><td class="up">$245M</td><td class="up">$1.4B</td><td class="up">+18%</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi red-t"><label>Portfolio PD</label><div class="val" id="st-pd">3.8%</div><div class="sub" id="st-pd-s">Baseline: 1.5%</div></div>
+    <div class="kpi amber"><label>Expected Loss</label><div class="val" id="st-el">$110M</div><div class="sub" id="st-el-s">Baseline: $84M</div></div>
+    <div class="kpi gold-t"><label>Capital Impact</label><div class="val" id="st-cap">$680M</div><div class="sub" id="st-cap-s">+31% vs baseline</div></div>
+    <div class="kpi blue-t"><label>RWA Change</label><div class="val" id="st-rwa">+8%</div><div class="sub" id="st-rwa-s">$520M → $562M</div></div>
+  </div>
+
+  <div class="grid-2-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Portfolio Expected Loss Over Time (Dynamic)</h3>
+      <div class="chart-wrap"><canvas id="stressChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Sector EL Distribution Under Stress</h3>
+      <div class="chart-wrap"><canvas id="stressDonut"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h3>Counterparty-Level Stress Impact</h3>
+    <table class="tbl" id="stressCounterpartyTable">
+      <tr><th>Counterparty</th><th>Sector</th><th>Baseline EL</th><th>Stressed EL</th><th>PD Change</th><th>Capital Add-on</th><th>Alert</th></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ AI INTELLIGENCE ══════════ -->
+<div id="ai" class="screen">
+  <div class="scenario-bar"><h2>AI Intelligence Layer</h2></div>
+  <div class="kpis">
+    <div class="kpi amber"><label>AI Agents Active</label><div class="val">5</div><div class="sub">All systems nominal</div></div>
+    <div class="kpi gold-t"><label>Insights Generated</label><div class="val">127</div><div class="sub">Last 30 days</div></div>
+    <div class="kpi blue-t"><label>Model Accuracy</label><div class="val">94.2%</div><div class="sub">Backtested Q4 2024</div></div>
+    <div class="kpi red-t"><label>High-Risk Alerts</label><div class="val">12</div><div class="sub">Requires review</div></div>
+  </div>
+  <div class="grid-1-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>AI Agent Status</h3>
+      <table class="tbl">
+        <tr><th>Agent</th><th>Function</th><th>Status</th><th>Last Run</th><th>Accuracy</th></tr>
+        <tr><td>🟢 Agent 1</td><td>Climate Data Ingestion</td><td class="dn">Active</td><td style="color:var(--text-muted)">2 min ago</td><td class="dn">99.1%</td></tr>
+        <tr><td>🟢 Agent 2</td><td>Scenario Analytics</td><td class="dn">Active</td><td style="color:var(--text-muted)">5 min ago</td><td class="dn">96.3%</td></tr>
+        <tr><td>🟢 Agent 3</td><td>Risk Calibration</td><td class="dn">Active</td><td style="color:var(--text-muted)">12 min ago</td><td class="dn">94.2%</td></tr>
+        <tr><td>🟡 Agent 4</td><td>Collateral Valuation</td><td class="neutral">Updating</td><td style="color:var(--text-muted)">1 hr ago</td><td class="neutral">91.8%</td></tr>
+        <tr><td>🟢 Agent 5</td><td>Narrative &amp; Insights</td><td class="dn">Active</td><td style="color:var(--text-muted)">Real-time</td><td class="dn">97.5%</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Model Performance Over Time</h3>
+      <div class="chart-wrap"><canvas id="aiAccChart"></canvas></div>
+    </div>
+  </div>
+  <div class="ai-section" style="margin-bottom:14px">
+    <div class="ai-section-title">🤖 Portfolio-Level Insights</div>
+    <div class="ai-insight-row"><div class="ai-icon warn">⚠️</div><div style="font-size:12px;line-height:1.6">Under <strong style="color:var(--gold)">Net Zero 2050</strong> transition pathway, global Oil &amp; Gas assets face <strong style="color:#f87171">28% decline in asset value</strong> and <strong style="color:#f87171">37% rise in expected loss</strong>, primarily driven by carbon pricing escalation and declining fossil fuel demand.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon info">💧</div><div style="font-size:12px;line-height:1.6">Real Estate collateral in <strong style="color:var(--gold)">Southeast Asia coastal zones</strong> shows <strong style="color:#f87171">22% value erosion</strong> under RCP 8.5 sea-level projections by 2040. LGD adjustments recommended for 14 counterparties across Vietnam, Indonesia, Bangladesh.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon crit">🔴</div><div style="font-size:12px;line-height:1.6">Carbon Border Adjustment Mechanism (CBAM) implementation risk elevates Mining sector EL by <strong style="color:#f87171">$47M</strong> for EU-exposed counterparties in the 2026–2028 window. Rio Tinto and Glencore most exposed.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon warn">📈</div><div style="font-size:12px;line-height:1.6">PG&E wildfire exposure under <strong style="color:var(--gold)">RCP 8.5</strong> increases physical risk PD contribution by <strong style="color:#f87171">+2.3%</strong>. California wildfire season 2024 already 18% more severe than 2023 baseline. Collateral revaluation triggered for $1.2B of assets.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon ok">✅</div><div style="font-size:12px;line-height:1.6">Adani Green Energy and NTPC Renewables exposure shows <strong style="color:#34d399">negative correlation</strong> with climate risk premium. Increasing exposure to this segment by 5–8% would reduce overall portfolio EL by an estimated <strong style="color:#34d399">$22M</strong>.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon info">🏦</div><div style="font-size:12px;line-height:1.6">Chevron's announced <strong style="color:var(--gold)">Future Energy Fund</strong> ($3B over 5 years) shows insufficient transition velocity — at current pace, carbon intensity will remain 34% above Paris-aligned trajectory in 2030.</div></div>
+  </div>
+  <div class="card">
+    <h3>AI Recommendations</h3>
+    <table class="tbl">
+      <tr><th>Priority</th><th>Action</th><th>Expected Impact</th><th>Timeline</th><th>Owner</th></tr>
+      <tr><td><span class="badge high">Critical</span></td><td>Reduce Oil &amp; Gas concentration below 15% of portfolio</td><td class="dn">–$38M EL reduction</td><td style="color:var(--text-muted)">Q2 2025</td><td style="color:var(--text-muted)">Risk Committee</td></tr>
+      <tr><td><span class="badge high">High</span></td><td>Recalibrate LGD for coastal RE collateral in Asia</td><td class="dn">–$21M EL reduction</td><td style="color:var(--text-muted)">Q3 2025</td><td style="color:var(--text-muted)">Credit Risk</td></tr>
+      <tr><td><span class="badge med">Medium</span></td><td>Engage Chevron on Paris-aligned decarbonization roadmap</td><td class="neutral">Risk monitoring</td><td style="color:var(--text-muted)">Ongoing</td><td style="color:var(--text-muted)">Relationship Mgmt</td></tr>
+      <tr><td><span class="badge med">Medium</span></td><td>Increase green / renewable energy allocation to 12%</td><td class="dn">–$22M EL, +ESG score</td><td style="color:var(--text-muted)">Q4 2025</td><td style="color:var(--text-muted)">Portfolio Mgmt</td></tr>
+      <tr><td><span class="badge mod">Low</span></td><td>Issue climate-linked loan covenants for high-risk borrowers</td><td class="dn">–$8M capital relief</td><td style="color:var(--text-muted)">Q1 2026</td><td style="color:var(--text-muted)">Legal / Structuring</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════ STRATEGY ══════════ -->
+<div id="strategy" class="screen">
+  <div class="scenario-bar"><h2>Strategic Portfolio Actions</h2></div>
+  <div class="kpis">
+    <div class="kpi gold-t"><label>Net Zero Alignment</label><div class="val">38%</div><div class="sub">Portfolio coverage</div></div>
+    <div class="kpi blue-t"><label>Green Finance</label><div class="val">$1.2B</div><div class="sub">Committed 2024</div></div>
+    <div class="kpi amber"><label>TCFD Disclosure</label><div class="val">94%</div><div class="sub">Counterparty coverage</div></div>
+    <div class="kpi red-t"><label>Divestment Queue</label><div class="val">7</div><div class="sub">Counterparties flagged</div></div>
+  </div>
+
+  <!-- CREDIT SCORE SECTION -->
+  <div class="card" style="margin-bottom:14px">
+    <h3>Climate-Adjusted Credit Score &amp; Rating Impact</h3>
+    <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:24px;align-items:start">
+      <div style="text-align:center">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);margin-bottom:10px">Portfolio Climate Credit Score</div>
+        <div class="credit-score-ring" style="width:140px;height:140px">
+          <canvas id="scoreDonut" width="140" height="140"></canvas>
+          <div class="score-label">
+            <div class="score-num">62</div>
+            <div class="score-txt">/ 100</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Score interpretation: <span style="color:var(--amber)">Moderate Risk</span></div>
+      </div>
+      <div>
+        <div class="sdiv">Rating Impact by Counterparty</div>
+        <table class="tbl">
+          <tr><th>Counterparty</th><th>Current Rating</th><th>Climate Score</th><th>Adjusted Rating</th><th>Impact</th></tr>
+          <tr><td>Chevron</td><td><span class="rating-chip A">A–</span></td><td class="neutral">48/100</td><td><span class="rating-chip BBB">BBB+</span></td><td class="up">–1 Notch</td></tr>
+          <tr><td>PG&amp;E</td><td><span class="rating-chip BB">BB+</span></td><td class="up">31/100</td><td><span class="rating-chip BB">BB–</span></td><td class="up">–2 Notches</td></tr>
+          <tr><td>TotalEnergies</td><td><span class="rating-chip A">A</span></td><td class="neutral">52/100</td><td><span class="rating-chip A">A–</span></td><td class="up">–1 Notch</td></tr>
+          <tr><td>Rio Tinto</td><td><span class="rating-chip A">A–</span></td><td class="neutral">55/100</td><td><span class="rating-chip A">A–</span></td><td class="dn">Stable</td></tr>
+          <tr><td>Shell</td><td><span class="rating-chip A">A–</span></td><td class="neutral">50/100</td><td><span class="rating-chip BBB">BBB+</span></td><td class="up">–1 Notch</td></tr>
+          <tr><td>Adani Green</td><td><span class="rating-chip BBB">BBB+</span></td><td class="dn">78/100</td><td><span class="rating-chip A">A–</span></td><td class="dn">+1 Notch</td></tr>
+          <tr><td>NTPC</td><td><span class="rating-chip A">AA–</span></td><td class="dn">71/100</td><td><span class="rating-chip A">AA–</span></td><td class="dn">Stable</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="sdiv">Score Components</div>
+        <div class="prog-row"><span class="lbl">Carbon Exposure</span><div class="prog-bar"><div class="prog-fill" style="width:72%;background:#ef4444"></div></div><span class="pct up">72%</span></div>
+        <div class="prog-row"><span class="lbl">Transition Plan</span><div class="prog-bar"><div class="prog-fill" style="width:45%;background:#f59e0b"></div></div><span class="pct neutral">45%</span></div>
+        <div class="prog-row"><span class="lbl">Physical Risk</span><div class="prog-bar"><div class="prog-fill" style="width:58%;background:#f97316"></div></div><span class="pct up">58%</span></div>
+        <div class="prog-row"><span class="lbl">ESG Disclosure</span><div class="prog-bar"><div class="prog-fill" style="width:66%;background:#3b82f6"></div></div><span class="pct neutral">66%</span></div>
+        <div class="prog-row"><span class="lbl">Green Revenue</span><div class="prog-bar"><div class="prog-fill" style="width:32%;background:#10b981"></div></div><span class="pct dn">32%</span></div>
+        <div class="prog-row"><span class="lbl">Supply Chain</span><div class="prog-bar"><div class="prog-fill" style="width:49%;background:#8b5cf6"></div></div><span class="pct neutral">49%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-1-1" style="margin-bottom:14px">
+    <div class="card">
+      <h3>Portfolio Decarbonization Pathway</h3>
+      <div class="chart-wrap"><canvas id="decarChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Climate Action Scorecard</h3>
+      <table class="tbl">
+        <tr><th>Counterparty</th><th>Net Zero Target</th><th>Transition Score</th><th>TCFD</th><th>Action</th></tr>
+        <tr><td>Chevron</td><td style="color:var(--text-muted)">2050</td><td class="up">D+ (48)</td><td class="neutral">Partial</td><td><span class="badge high">Review</span></td></tr>
+        <tr><td>PG&E</td><td style="color:var(--text-muted)">2040</td><td class="dn">B– (65)</td><td class="dn">Full</td><td><span class="badge low">Monitor</span></td></tr>
+        <tr><td>TotalEnergies</td><td style="color:var(--text-muted)">2050</td><td class="neutral">C (52)</td><td class="dn">Full</td><td><span class="badge med">Engage</span></td></tr>
+        <tr><td>Rio Tinto</td><td style="color:var(--text-muted)">2050</td><td class="neutral">C+ (55)</td><td class="dn">Full</td><td><span class="badge mod">Monitor</span></td></tr>
+        <tr><td>Shell</td><td style="color:var(--text-muted)">2050</td><td class="neutral">C (50)</td><td class="neutral">Partial</td><td><span class="badge med">Engage</span></td></tr>
+        <tr><td>Adani Green</td><td style="color:var(--text-muted)">2035</td><td class="dn">A– (78)</td><td class="dn">Full</td><td><span class="badge low">Increase</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">🤖 Strategic Recommendations</div>
+    <div class="ai-insight-row"><div class="ai-icon crit">🎯</div><div style="font-size:12px;line-height:1.6">Portfolio-wide carbon intensity can be reduced by <strong style="color:#34d399">31%</strong> by 2030 through selective divestment of 3 high-exposure counterparties (Chevron, TotalEnergies, PG&E subordinated debt) and reallocation to clean energy financing. Estimated EL reduction: <strong style="color:#34d399">$58M</strong>.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon warn">📊</div><div style="font-size:12px;line-height:1.6">Introduce <strong style="color:var(--gold)">climate-linked pricing adjustments</strong> for 5 high-carbon borrowers. A 25–50bps premium on climate-exposed tranches would generate $8–12M incremental income while incentivizing transition planning.</div></div>
+    <div class="ai-insight-row"><div class="ai-icon ok">✅</div><div style="font-size:12px;line-height:1.6">Increasing green/sustainable finance allocation to <strong style="color:#34d399">12% of portfolio</strong> (from current 6%) aligns with RBI Sustainable Finance framework and improves the Climate Credit Score from 62 to an estimated <strong style="color:#34d399">71</strong>, avoiding regulatory capital add-on of ~$45M.</div></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// FINANCIAL MODEL CONSTANTS
+// ═══════════════════════════════════════════════
+// FX conversion: 1 USD = ₹83
+// Exposures stored in USD millions (EAD_USD)
+// EL = EAD × PD × LGD  (standard Basel credit risk formula)
+// Capital Requirement ≈ 8% × RWA  →  RWA = Capital / 0.08
+// Revenue Impact = -0.05 × (carbonPrice / 100)  per scenario
+// EBITDA Impact = Revenue Impact × 1.4
+// Stressed PD = Baseline PD × (1 + |EBITDA drop fraction|)
+// Physical LGD uplift = Asset Damage % × 0.5
+
+const FX = 83; // INR per USD
+
+// Helper: convert ₹ Crore → USD millions
+function crToUSD(cr) { return (cr * 1e7) / FX / 1e6; }  // cr * 10M / 83 / 1M
+
+// ── COUNTERPARTY MASTER DATA ──
+// eadUSD: Exposure at Default in USD millions (EAD)
+// basePD:  baseline Probability of Default (%)
+// baseLGD: baseline Loss Given Default (%)
+// Scenario PD/LGD adjustments driven by transition mechanics below
+const CP_MASTER = {
+  chevron:  { eadINR_Cr: 4200,  eadUSD: crToUSD(4200),  basePD: 1.2, baseLGD: 35 },
+  pge:      { eadINR_Cr: 2800,  eadUSD: crToUSD(2800),  basePD: 2.1, baseLGD: 42 },
+  total:    { eadINR_Cr: 5100,  eadUSD: crToUSD(5100),  basePD: 0.8, baseLGD: 30 },
+  rio:      { eadINR_Cr: 3400,  eadUSD: crToUSD(3400),  basePD: 0.7, baseLGD: 28 },
+  shell:    { eadINR_Cr: 3900,  eadUSD: crToUSD(3900),  basePD: 1.0, baseLGD: 33 },
+  exxon:    { eadINR_Cr: 6200,  eadUSD: crToUSD(6200),  basePD: 0.9, baseLGD: 32 },
+  adani:    { eadINR_Cr: 2100,  eadUSD: crToUSD(2100),  basePD: 0.4, baseLGD: 25 },
+  ntpc:     { eadINR_Cr: 1800,  eadUSD: crToUSD(1800),  basePD: 0.5, baseLGD: 20 },
+};
+
+// Scenario-level revenue drop (%) — drives PD via EBITDA channel
+const SC_REV_DROP = {
+  baseline:         0,
+  below2_immediate: -7,
+  below2_delayed:   -10,
+  netzero:          -15,
+  fragmented:       -4,
+};
+
+// Scenario carbon price ($/t) — drives LGD via collateral/asset-stranding channel
+// As carbon price rises, carbon-intensive asset values fall → collateral worth less → LGD increases
+const SC_CARBON_PRICE = {
+  baseline:          40,
+  below2_immediate: 110,
+  below2_delayed:   145,
+  netzero:          200,
+  fragmented:        65,
+};
+// LGD transition uplift formula:
+//   Collateral erosion factor = carbon-intensity weight × (carbonPrice - baselinePrice) / 100
+//   Transition LGD uplift = baseLGD × collateral erosion factor × cpLGDsens
+// Per-counterparty carbon-intensity LGD sensitivity (higher = more collateral exposed to stranding)
+const CP_LGD_SENSITIVITY = {
+  chevron: 0.28,  // high O&G asset stranding → collateral degrades fast
+  pge:     0.18,  // utility assets partially stranded
+  total:   0.25,
+  rio:     0.20,  // mining assets, moderate stranding
+  shell:   0.26,
+  exxon:   0.30,  // highest fossil asset intensity
+  adani:   -0.05, // renewables benefit from transition → collateral appreciates slightly
+  ntpc:    0.15,  // coal plants strand, but GoI guarantee partially cushions
+};
+
+// Per-counterparty revenue sensitivity multiplier (vs sector average)
+// >1 = more sensitive, <1 = less sensitive to carbon policy
+const CP_REV_SENSITIVITY = {
+  chevron: 1.5, pge: 1.0, total: 1.3, rio: 1.1,
+  shell: 1.4, exxon: 1.6, adani: -0.8, ntpc: 0.9,
+};
+
+// ── CORE CREDIT RISK ENGINE ──
+// Returns { pd, lgd, el, rwa, capital } for a counterparty under a scenario
+// Dual LGD stress channels:
+//   1. Transition: carbon price → asset stranding → collateral erosion → LGD uplift
+//   2. Physical:   asset damage % → collateral loss → LGD uplift
+function calcCredit(cpKey, scenario, physDamagePct = 0) {
+  const cp       = CP_MASTER[cpKey];
+  const revDrop  = SC_REV_DROP[scenario]    || 0;
+  const carbonPx = SC_CARBON_PRICE[scenario]|| 40;
+  const sens     = CP_REV_SENSITIVITY[cpKey]|| 1.0;
+  const lgdSens  = CP_LGD_SENSITIVITY[cpKey]|| 0.15;
+
+  // ── Channel 1: Transition risk → PD (via revenue/EBITDA compression) ──
+  const cpRevDrop  = revDrop * sens;
+  const ebitdaDrop = cpRevDrop * 1.4;
+  const ebitdaFrac = Math.abs(ebitdaDrop) / 100;
+  let stressedPD   = cp.basePD * (1 + ebitdaFrac);
+  if (sens < 0) stressedPD = Math.max(0.1, cp.basePD * (1 - ebitdaFrac * 0.5)); // green benefit
+  stressedPD = Math.min(6.0, Math.max(0.1, +stressedPD.toFixed(2)));
+
+  // ── Channel 2a: Transition risk → LGD (via carbon price → asset stranding → collateral erosion) ──
+  // Collateral erosion = lgdSens × (carbonPrice - baseline_40) / 100
+  const carbonLift    = (carbonPx - 40) / 100;               // 0 at baseline, grows with carbon price
+  const transLGDuplift = cp.baseLGD * lgdSens * carbonLift;  // absolute % points
+
+  // ── Channel 2b: Physical risk → LGD (asset damage erodes collateral value) ──
+  const physLGDuplift = physDamagePct * 0.5;
+
+  // Combined LGD
+  let stressedLGD = cp.baseLGD + transLGDuplift + physLGDuplift;
+  // Adani: collateral appreciates under transition (renewables scarcity premium)
+  if (lgdSens < 0) stressedLGD = Math.max(20, cp.baseLGD + transLGDuplift);
+  stressedLGD = Math.min(60, Math.max(20, +stressedLGD.toFixed(1)));
+
+  // EL = EAD × PD × LGD
+  const el      = +(cp.eadUSD * (stressedPD / 100) * (stressedLGD / 100)).toFixed(2);
+  const capital = +(el * 12).toFixed(1);
+  const rwa     = +(capital / 0.08).toFixed(1);
+
+  return {
+    pd: stressedPD, lgd: stressedLGD, el, rwa, capital,
+    eadUSD: cp.eadUSD, eadINR_Cr: cp.eadINR_Cr,
+    cpRevDrop: +cpRevDrop.toFixed(1), ebitdaDrop: +ebitdaDrop.toFixed(1),
+    transLGDuplift: +transLGDuplift.toFixed(2),
+  };
+}
+
+// Portfolio-level EL = sum of all counterparty ELs
+function calcPortfolioEL(scenario, physDamage = 0) {
+  return Object.keys(CP_MASTER).reduce((sum, k) => sum + calcCredit(k, scenario, physDamage).el, 0);
+}
+
+// Scenario-level PD/LGD increments (weighted avg across portfolio vs baseline)
+function calcScenarioDeltas(scenario, physDamage = 0) {
+  const keys = Object.keys(CP_MASTER);
+  const base     = keys.map(k => calcCredit(k, 'baseline', 0));
+  const stressed = keys.map(k => calcCredit(k, scenario,   physDamage));
+  const totalEAD = keys.reduce((s,k) => s + CP_MASTER[k].eadUSD, 0);
+
+  // Exposure-weighted average PD and LGD
+  const wtdBasePD  = base.map((r,i)     => r.pd  * CP_MASTER[keys[i]].eadUSD).reduce((a,b)=>a+b,0) / totalEAD;
+  const wtdStsPD   = stressed.map((r,i) => r.pd  * CP_MASTER[keys[i]].eadUSD).reduce((a,b)=>a+b,0) / totalEAD;
+  const wtdBaseLGD = base.map((r,i)     => r.lgd * CP_MASTER[keys[i]].eadUSD).reduce((a,b)=>a+b,0) / totalEAD;
+  const wtdStsLGD  = stressed.map((r,i) => r.lgd * CP_MASTER[keys[i]].eadUSD).reduce((a,b)=>a+b,0) / totalEAD;
+
+  const baseEL   = base.reduce((s,r)     => s + r.el, 0);
+  const stressEL = stressed.reduce((s,r) => s + r.el, 0);
+  const stressRWA= stressed.reduce((s,r) => s + r.rwa, 0);
+
+  return {
+    pdIncDisplay: +(wtdStsPD  - wtdBasePD).toFixed(2),   // correct: PD delta
+    lgdInc:       +(wtdStsLGD - wtdBaseLGD).toFixed(2),  // correct: LGD delta
+    el:           +stressEL.toFixed(1),
+    elInc:        +(stressEL - baseEL).toFixed(1),
+    rwa:          +stressRWA.toFixed(0),
+  };
+}
+
+// ── SCENARIO META (label, carbon price, geo labels) ──
+const SCENARIOS = {
+  baseline:         { label:'Baseline',           carbonPrice:40,  revChg:0,   ebitdaChg:0,   margin:0 },
+  below2_immediate: { label:'Below 2°C Immediate',carbonPrice:110, revChg:-5,  ebitdaChg:-7,  margin:-4 },
+  below2_delayed:   { label:'Below 2°C Delayed',  carbonPrice:145, revChg:-7,  ebitdaChg:-10, margin:-6 },
+  netzero:          { label:'Net Zero 2050',       carbonPrice:200, revChg:-12, ebitdaChg:-17, margin:-11 },
+  fragmented:       { label:'Fragmented World',    carbonPrice:65,  revChg:-3,  ebitdaChg:-4,  margin:-2 },
+};
+
+// Derive geo EL labels from computed values
+function geoLabel(sc, regionMult) {
+  const base = calcPortfolioEL('baseline');
+  const stressed = calcPortfolioEL(sc);
+  const pct = Math.round(((stressed - base) / base) * 100 * regionMult);
+  return (pct >= 0 ? '+' : '') + pct + '% EL';
+}
+
+function chevronInsightEL(sc) {
+  const r = calcCredit('chevron', sc);
+  return '$' + r.el.toFixed(1) + 'M';
+}
+
+// ── COUNTERPARTY PROFILE DATA (display + AI insights) ──
+// metrics.pd/lgd/el/rwa/cap are COMPUTED from engine, not hardcoded
+function cpMetrics(cpKey) {
+  const scs = ['baseline','below2_delayed','netzero'];
+  return {
+    pd:  scs.map(s => calcCredit(cpKey, s).pd),
+    lgd: scs.map(s => calcCredit(cpKey, s).lgd),
+    el:  scs.map(s => +calcCredit(cpKey, s).el.toFixed(1)),
+    rwa: scs.map(s => +calcCredit(cpKey, s).rwa.toFixed(0)),
+    cap: scs.map(s => +calcCredit(cpKey, s).capital.toFixed(1)),
+  };
+}
+
+const COUNTERPARTIES = {
+  chevron: {
+    logo:'CHV', name:'Chevron Corporation', meta:'Oil & Gas · United States · NYSE · ICRA: A– · Outlook: Negative',
+    riskBadge:'high', riskLabel:'High Climate Risk', watchLabel:'Watch List',
+    rev:'$77B', revSub:'FY 2024', ebitda:'$11B', ebitdaSub:'14.7% margin', ci:'0.42', em:'51 Mt',
+    carbonRisk:78, strandRisk:65, policyRisk:52, floodRisk:41, heatRisk:33, waterRisk:24,
+    revData:{ baseline:[77,79,81,83,84,85,87], below2_immediate:[77,75,72,68,62,54,44], below2_delayed:[77,76,74,71,67,61,52], netzero:[77,74,70,64,56,44,31], fragmented:[77,78,79,80,81,82,83] },
+    get metrics(){ return cpMetrics('chevron'); },
+    ai: [
+      { icon:'⚠️', cls:'warn', text:`Chevron's stranded asset risk accelerates post-2035. Upstream oil reserves represent <strong style="color:#fbbf24">$18.4B</strong> of potentially unrecoverable value under Net Zero 2050 — equivalent to 24% of market cap.` },
+      { icon:'📉', cls:'crit', text:`Carbon pricing at $145/t (current scenario) increases Chevron's annual tax burden by <strong style="color:#f87171">$7.4B</strong>, reducing EBITDA margin from 14.7% to approximately <strong style="color:#f87171">11.2%</strong> by 2028.` },
+      { icon:'🔍', cls:'info', text:`Chevron's Permian Basin assets contribute 38% of production but face <strong style="color:var(--gold)">highest transition risk</strong>. Methane intensity (2.3 g/MJ) exceeds IEA Paris-aligned threshold of 0.2 g/MJ.` },
+      { icon:'✅', cls:'ok', text:`Chevron's $3B Future Energy Fund represents only <strong style="color:#34d399">0.6% of annual capex</strong> directed toward low-carbon. Peer TotalEnergies allocates 12%. Engagement recommended to accelerate transition planning.` },
+    ]
+  },
+  exxon: {
+    logo:'XOM', name:'Exxon Mobil Corp.', meta:'Oil & Gas · United States · NYSE · ICRA: A+ · Outlook: Stable',
+    riskBadge:'high', riskLabel:'High Climate Risk', watchLabel:'Watch List',
+    rev:'$400B', revSub:'FY 2024', ebitda:'$55B', ebitdaSub:'13.8% margin', ci:'0.51', em:'112 Mt',
+    carbonRisk:85, strandRisk:72, policyRisk:61, floodRisk:35, heatRisk:42, waterRisk:28,
+    revData:{ baseline:[400,405,410,415,420,425,430], below2_immediate:[400,388,372,354,330,299,258], below2_delayed:[400,390,378,362,340,308,268], netzero:[400,382,358,326,284,228,158], fragmented:[400,398,396,394,392,390,388] },
+    get metrics(){ return cpMetrics('exxon'); },
+    ai: [
+      { icon:'⚠️', cls:'warn', text:`Exxon carries the <strong style="color:#f87171">largest absolute carbon liability</strong> in the portfolio at 112 Mt CO₂e/year. At $145/t carbon price, annual compliance cost reaches <strong style="color:#f87171">$16.2B</strong> — 29% of operating income.` },
+      { icon:'📉', cls:'crit', text:`ExxonMobil's Pioneer Natural Resources acquisition adds 1.3 billion barrels of Permian Basin reserves — <strong style="color:var(--gold)">high stranding risk</strong> under accelerated transition. Estimated stranded value: $42B by 2040 under Net Zero.` },
+      { icon:'🔍', cls:'info', text:`Despite opposing shareholder climate resolutions, Exxon has committed to <strong style="color:var(--gold)">net-zero Scope 1+2 by 2050</strong>. No credible Scope 3 pathway disclosed — significant credibility gap vs. peers.` },
+      { icon:'✅', cls:'ok', text:`CCS investments ($17B committed) position Exxon as potential <strong style="color:#34d399">technology leader</strong>. If Stratos DAC plant scales, climate risk premium could reduce by 0.3–0.5 notches over 5 years.` },
+    ]
+  },
+  total: {
+    logo:'TTE', name:'TotalEnergies SE', meta:'Oil & Gas · France · Euronext · ICRA: A · Outlook: Stable',
+    riskBadge:'med', riskLabel:'Med-High Climate Risk', watchLabel:'Under Review',
+    rev:'$218B', revSub:'FY 2024', ebitda:'$38B', ebitdaSub:'17.4% margin', ci:'0.31', em:'74 Mt',
+    carbonRisk:62, strandRisk:55, policyRisk:48, floodRisk:38, heatRisk:29, waterRisk:21,
+    revData:{ baseline:[218,222,226,230,234,238,244], below2_immediate:[218,212,204,194,181,164,142], below2_delayed:[218,213,207,199,188,172,151], netzero:[218,208,196,180,160,134,102], fragmented:[218,217,216,215,214,213,212] },
+    get metrics(){ return cpMetrics('total'); },
+    ai: [
+      { icon:'✅', cls:'ok', text:`TotalEnergies leads Oil &amp; Gas peers in transition strategy, with <strong style="color:#34d399">12% of capex</strong> directed to renewables and EV charging. Integrated Power segment revenue grew 28% YoY, reducing fossil dependency.` },
+      { icon:'⚠️', cls:'warn', text:`European CBAM poses direct headwinds for TotalEnergies' LNG exports to EU. Estimated <strong style="color:#f87171">€1.8B incremental cost</strong> by 2028 under current CBAM schedule — not yet reflected in credit pricing.` },
+      { icon:'📉', cls:'info', text:`TotalEnergies' African upstream portfolio (Angola, Congo, Nigeria) carries <strong style="color:var(--gold)">high transition-stranding risk</strong> — assets projected to be uneconomic at carbon prices above $120/t.` },
+    ]
+  },
+  shell: {
+    logo:'SHEL', name:'Shell PLC', meta:'Oil & Gas · UK/Netherlands · LSE · ICRA: A– · Outlook: Negative',
+    riskBadge:'med', riskLabel:'Med-High Climate Risk', watchLabel:'Watch List',
+    rev:'$317B', revSub:'FY 2024', ebitda:'$44B', ebitdaSub:'13.9% margin', ci:'0.36', em:'87 Mt',
+    carbonRisk:68, strandRisk:58, policyRisk:54, floodRisk:44, heatRisk:31, waterRisk:26,
+    revData:{ baseline:[317,322,327,332,337,342,348], below2_immediate:[317,306,293,277,257,231,198], below2_delayed:[317,308,297,283,265,240,208], netzero:[317,302,284,261,233,196,152], fragmented:[317,316,315,314,313,312,311] },
+    get metrics(){ return cpMetrics('shell'); },
+    ai: [
+      { icon:'⚠️', cls:'warn', text:`Shell reversed its 2021 Dutch court-ordered emission reduction mandate — creating <strong style="color:#f87171">regulatory litigation risk</strong> estimated at $4–8B. Legal outcome could materially affect credit profile in 2025–2026.` },
+      { icon:'📉', cls:'crit', text:`Shell's Powering Progress strategy targets 50% net carbon intensity reduction by 2050 — <strong style="color:var(--gold)">pace insufficient</strong> for Paris alignment. At current trajectory, climate risk premium will widen by 2027.` },
+      { icon:'✅', cls:'ok', text:`Shell's integrated gas (LNG) portfolio provides <strong style="color:#34d399">medium-term revenue bridge</strong> as coal-to-gas transition in Asia continues. LNG demand expected to grow 3.4% CAGR through 2035 even under below-2°C scenarios.` },
+    ]
+  },
+  pge: {
+    logo:'PGE', name:'Pacific Gas & Electric', meta:'Utilities · United States · NYSE · ICRA: BB+ · Outlook: Stable',
+    riskBadge:'high', riskLabel:'High Climate Risk', watchLabel:'Critical Watch',
+    rev:'$24B', revSub:'FY 2024', ebitda:'$8.1B', ebitdaSub:'33.8% margin', ci:'0.18', em:'18 Mt',
+    carbonRisk:55, strandRisk:40, policyRisk:70, floodRisk:52, heatRisk:68, waterRisk:38,
+    revData:{ baseline:[24,24.5,25,25.5,26,26.5,27], below2_immediate:[24,23,22,21,19.5,18,16.5], below2_delayed:[24,23.2,22.1,20.8,19.2,17.4,15.8], netzero:[24,22.8,21.2,19.2,16.8,13.8,11.2], fragmented:[24,24.2,24.4,24.6,24.8,25,25.2] },
+    get metrics(){ return cpMetrics('pge'); },
+    ai: [
+      { icon:'🔴', cls:'crit', text:`PG&amp;E filed for bankruptcy in 2019 following $30B+ wildfire liabilities. <strong style="color:#f87171">Wildfire risk remains existential</strong> — CALFIRE reports 2024 season 18% more severe than 2023. Climate-adjusted PD of 6.8% under Net Zero is the highest in portfolio.` },
+      { icon:'⚠️', cls:'warn', text:`California Public Utility Commission (CPUC) is reviewing PG&amp;E's wildfire mitigation plan — potential <strong style="color:#f87171">$2.1B fine exposure</strong> for non-compliance with vegetation management requirements.` },
+      { icon:'📉', cls:'info', text:`Physical risk (wildfire + heat) accounts for <strong style="color:var(--gold)">78% of PG&amp;E's total climate risk premium</strong>, vs. 22% for transition risk. Unique risk profile requires dedicated physical risk stress testing.` },
+      { icon:'✅', cls:'ok', text:`PG&amp;E's accelerated grid hardening program ($15B, 2023–2026) and PSPS technology deployment reduced ignition risk by 40%. If targets met, physical risk PD contribution reduces by 1.8–2.1% by 2026.` },
+    ]
+  },
+  rio: {
+    logo:'RIO', name:'Rio Tinto PLC', meta:'Mining · UK/Australia · LSE/ASX · ICRA: A– · Outlook: Stable',
+    riskBadge:'med', riskLabel:'Med Climate Risk', watchLabel:'Monitored',
+    rev:'$54B', revSub:'FY 2024', ebitda:'$21B', ebitdaSub:'38.9% margin', ci:'0.22', em:'31 Mt',
+    carbonRisk:58, strandRisk:48, policyRisk:42, floodRisk:62, heatRisk:55, waterRisk:48,
+    revData:{ baseline:[54,55,56,57,58,59,61], below2_immediate:[54,52,50,47,44,40,36], below2_delayed:[54,52.5,50.8,48.6,46,42.4,38.2], netzero:[54,51,47,43,38,31,24], fragmented:[54,54.5,55,55.5,56,56.5,57] },
+    get metrics(){ return cpMetrics('rio'); },
+    ai: [
+      { icon:'✅', cls:'ok', text:`Rio Tinto's copper and lithium portfolio represents a <strong style="color:#34d399">natural hedge</strong> against transition risk — both commodities are critical for electrification. Copper demand projected to grow 3.8x by 2040 under Net Zero.` },
+      { icon:'⚠️', cls:'warn', text:`Pilbara iron ore operations face <strong style="color:#f87171">severe water stress risk</strong> under RCP 8.5 by 2035. Water intensity of 180L/tonne ore is 2.4x the regional sustainable yield — operational disruption risk rising.` },
+      { icon:'📉', cls:'info', text:`CBAM implementation creates <strong style="color:var(--gold)">$1.2B annual headwind</strong> for Rio's European steel customer base from 2026. Indirect demand destruction via supply chain likely more impactful than direct cost.` },
+    ]
+  },
+  adani: {
+    logo:'ADG', name:'Adani Green Energy Ltd', meta:'Renewables · India · NSE · ICRA: BBB+ · Outlook: Positive',
+    riskBadge:'low', riskLabel:'Low Climate Risk', watchLabel:'Green Tier',
+    rev:'₹8,240 Cr', revSub:'FY 2024', ebitda:'₹7,100 Cr', ebitdaSub:'86.2% margin', ci:'0.03', em:'0.8 Mt',
+    carbonRisk:12, strandRisk:8, policyRisk:22, floodRisk:28, heatRisk:24, waterRisk:18,
+    revData:{ baseline:[8.2,9.8,11.8,14.2,17.1,22.4,31.2], below2_immediate:[8.2,10.4,13.2,16.8,21.4,29.8,42.1], below2_delayed:[8.2,10.1,12.8,16.2,20.8,28.8,40.6], netzero:[8.2,10.8,14.1,18.4,24.2,34.8,50.4], fragmented:[8.2,9.4,10.8,12.4,14.2,17.1,21.4] },
+    get metrics(){ return cpMetrics('adani'); },
+    ai: [
+      { icon:'✅', cls:'ok', text:`Adani Green is the <strong style="color:#34d399">natural beneficiary</strong> of transition scenarios. Under Net Zero 2050, revenue CAGR exceeds 18%, and the company captures India's 500 GW renewable target (currently 20.4 GW capacity).` },
+      { icon:'✅', cls:'ok', text:`Climate risk premium for Adani Green is <strong style="color:#34d399">negative</strong> — increasing portfolio allocation to this counterparty reduces overall portfolio EL. Recommend increasing exposure by 0.5–1.0% of total portfolio.` },
+      { icon:'⚠️', cls:'warn', text:`Governance concerns (2023 Hindenburg report aftermath) create <strong style="color:#f87171">non-climate credit risk</strong>. Despite strong climate profile, enhanced due diligence on related-party transactions recommended before increasing exposure.` },
+    ]
+  },
+  ntpc: {
+    logo:'NTPC', name:'NTPC Limited', meta:'Utilities · India · NSE · ICRA: AA– · Outlook: Stable',
+    riskBadge:'mod', riskLabel:'Low-Med Climate Risk', watchLabel:'Stable',
+    rev:'₹1,78,000 Cr', revSub:'FY 2024', ebitda:'₹52,000 Cr', ebitdaSub:'29.2% margin', ci:'0.89', em:'183 Mt',
+    carbonRisk:72, strandRisk:55, policyRisk:48, floodRisk:32, heatRisk:41, waterRisk:58,
+    revData:{ baseline:[178,182,186,190,194,198,205], below2_immediate:[178,174,168,160,150,136,120], below2_delayed:[178,175,170,163,154,141,126], netzero:[178,172,164,153,139,120,98], fragmented:[178,179,180,181,182,183,185] },
+    get metrics(){ return cpMetrics('ntpc'); },
+    ai: [
+      { icon:'⚠️', cls:'warn', text:`NTPC's coal-heavy generation mix (70% coal) creates <strong style="color:#f87171">significant stranding risk</strong> under India's energy transition. If coal plant retirement accelerates to 2040, stranded asset exposure reaches ₹85,000 Cr.` },
+      { icon:'✅', cls:'ok', text:`NTPC Renewables' 60 GW target by 2032 and green bond issuances signal <strong style="color:#34d399">credible transition pivot</strong>. Current renewable capacity at 7.2 GW (14% of total) — trajectory improving.` },
+      { icon:'📉', cls:'info', text:`NTPC benefits from <strong style="color:var(--gold)">government backing (51.1% GoI stake)</strong> which provides implicit guarantee — climate-adjusted rating impact is partially cushioned by sovereign support. Net climate risk premium: lower than pure private-sector peer.` },
+    ]
+  },
+};
+
+// Transition scenario display data — EL strings computed from engine
+function transBorrowerRow(cpKey, sc) {
+  const r = calcCredit(cpKey, sc);
+  const base = calcCredit(cpKey, 'baseline');
+  const revDrop = (SC_REV_DROP[sc] * (CP_REV_SENSITIVITY[cpKey] || 1.0)).toFixed(0);
+  const pdChg = (r.pd - base.pd).toFixed(2);
+  const elChg = (r.el - base.el).toFixed(1);
+  return {
+    rev: (revDrop <= 0 ? '' : '+') + revDrop + '%',
+    pd:  (pdChg >= 0 ? '+' : '') + pdChg + '%',
+    el:  (elChg >= 0 ? '+$' : '-$') + Math.abs(elChg) + 'M',
+    risk: Math.abs(+revDrop) > 15 ? 'high' : Math.abs(+revDrop) > 8 ? 'med' : Math.abs(+revDrop) > 3 ? 'mod' : 'low',
+  };
+}
+
+// Transition scenario data — non-EL fields only (EL computed live)
+const TRANS_DATA = {
+  baseline:         { rev:0,   ebitda:0,  margin:0,  cp:40,  svEn:[-2,-3],   svUt:[-1,-2],  svMn:[0,-1],  svTr:[0,0],  svRe:[0,0],  svFi:[1,1] },
+  below2_immediate: { rev:-5,  ebitda:-7, margin:-4, cp:110, svEn:[-12,-16], svUt:[-8,-11], svMn:[-6,-8], svTr:[-5,-6], svRe:[-3,-4], svFi:[1,1] },
+  below2_delayed:   { rev:-7,  ebitda:-10,margin:-6, cp:145, svEn:[-18,-24], svUt:[-12,-15],svMn:[-9,-11],svTr:[-7,-8], svRe:[-4,-5], svFi:[1,2] },
+  netzero:          { rev:-12, ebitda:-17,margin:-11,cp:200, svEn:[-28,-38], svUt:[-20,-26], svMn:[-16,-20],svTr:[-12,-14],svRe:[-7,-9], svFi:[2,3] },
+  fragmented:       { rev:-3,  ebitda:-4, margin:-2, cp:65,  svEn:[-5,-7],   svUt:[-4,-5],  svMn:[-2,-3], svTr:[-2,-2], svRe:[-1,-2], svFi:[1,1] },
+};
+
+// Physical risk data by hazard + RCP
+const PHYS_DATA = {
+  all: { rcp85:{ dam:29, pd:5.7, lgd:2.1, col:-18 }, rcp45:{ dam:18, pd:3.8, lgd:1.4, col:-11 }, rcp26:{ dam:9, pd:2.1, lgd:0.8, col:-6 } },
+  flood: { rcp85:{ dam:34, pd:6.2, lgd:2.8, col:-22 }, rcp45:{ dam:21, pd:4.1, lgd:1.7, col:-14 }, rcp26:{ dam:11, pd:2.4, lgd:0.9, col:-7 } },
+  heat: { rcp85:{ dam:26, pd:4.8, lgd:1.9, col:-14 }, rcp45:{ dam:16, pd:3.2, lgd:1.2, col:-9 }, rcp26:{ dam:8, pd:1.8, lgd:0.6, col:-5 } },
+  wildfire: { rcp85:{ dam:38, pd:7.4, lgd:3.2, col:-28 }, rcp45:{ dam:24, pd:5.1, lgd:2.2, col:-18 }, rcp26:{ dam:12, pd:2.8, lgd:1.1, col:-9 } },
+  storm: { rcp85:{ dam:31, pd:5.9, lgd:2.4, col:-19 }, rcp45:{ dam:19, pd:3.9, lgd:1.6, col:-12 }, rcp26:{ dam:10, pd:2.2, lgd:0.8, col:-7 } },
+  sealevel: { rcp85:{ dam:22, pd:4.2, lgd:1.8, col:-24 }, rcp45:{ dam:13, pd:2.8, lgd:1.2, col:-16 }, rcp26:{ dam:6, pd:1.4, lgd:0.6, col:-10 } },
+};
+
+const PHYS_ASSET_DATA = {
+  all: {
+    rcp85: [[100,95,89,82,74,62,48],[100,96,92,87,81,71,58],[100,94,87,79,70,58,43],[100,100,101,102,102,103,103]],
+    rcp45: [[100,97,93,88,83,75,65],[100,98,95,91,87,80,72],[100,96,92,87,81,73,63],[100,100,101,102,102,103,103]],
+    rcp26: [[100,99,97,94,91,86,80],[100,99,97,95,92,88,83],[100,98,96,93,89,84,78],[100,100,101,102,102,103,103]],
+  },
+  flood: {
+    rcp85: [[100,93,85,76,66,52,36],[100,96,91,85,78,68,55],[100,94,86,77,67,53,38],[100,100,101,102,102,103,103]],
+    rcp45: [[100,96,91,85,78,68,57],[100,98,95,91,86,79,71],[100,97,93,88,82,74,64],[100,100,101,102,102,103,103]],
+    rcp26: [[100,99,97,94,90,85,79],[100,99,97,95,92,88,83],[100,98,96,93,89,84,78],[100,100,101,102,102,103,103]],
+  },
+  heat: {
+    rcp85: [[100,97,94,90,85,77,66],[100,97,94,90,85,77,67],[100,96,92,87,81,72,61],[100,100,101,102,102,103,103]],
+    rcp45: [[100,98,96,93,90,85,79],[100,98,96,93,90,85,79],[100,97,94,91,87,81,74],[100,100,101,102,102,103,103]],
+    rcp26: [[100,99,98,97,95,93,90],[100,99,98,97,96,94,91],[100,99,97,96,94,91,88],[100,100,101,102,102,103,103]],
+  },
+  wildfire: {
+    rcp85: [[100,91,81,70,57,41,24],[100,94,88,80,71,58,43],[100,92,83,72,59,43,26],[100,100,101,102,102,103,103]],
+    rcp45: [[100,94,87,79,70,58,45],[100,97,93,88,82,73,63],[100,95,89,82,74,63,50],[100,100,101,102,102,103,103]],
+    rcp26: [[100,98,95,91,86,79,71],[100,99,97,95,92,88,83],[100,98,95,91,87,81,74],[100,100,101,102,102,103,103]],
+  },
+  storm: {
+    rcp85: [[100,94,87,79,70,57,42],[100,95,90,83,75,63,49],[100,93,86,77,67,54,39],[100,100,101,102,102,103,103]],
+    rcp45: [[100,97,93,88,82,73,62],[100,98,95,91,86,79,70],[100,96,92,87,81,72,62],[100,100,101,102,102,103,103]],
+    rcp26: [[100,99,98,96,93,89,84],[100,99,98,96,94,91,87],[100,99,97,95,92,88,83],[100,100,101,102,102,103,103]],
+  },
+  sealevel: {
+    rcp85: [[100,98,95,90,84,74,60],[100,97,93,88,81,70,56],[100,97,93,87,80,69,55],[100,100,101,102,102,103,103]],
+    rcp45: [[100,99,97,94,90,84,76],[100,98,96,93,89,83,75],[100,98,96,93,88,82,74],[100,100,101,102,102,103,103]],
+    rcp26: [[100,100,99,98,96,93,89],[100,99,98,97,95,93,89],[100,99,98,97,95,92,88],[100,100,101,102,102,103,103]],
+  },
+};
+
+const PHYS_AI = {
+  all: [
+    { icon:'⚠️', cls:'warn', text:'Composite physical risk analysis shows <strong style="color:#f87171">Asia Pacific</strong> as the highest-risk region with 3.2x the global average exposure. Bangladesh, Vietnam, and Philippines coastal RE collateral requires immediate LGD recalibration.' },
+    { icon:'🔴', cls:'crit', text:'Under RCP 8.5, <strong style="color:#f87171">cumulative physical damage</strong> to portfolio assets reaches $284B by 2040. Energy infrastructure in Southeast Asia and North American coastal zones are primary drivers.' },
+    { icon:'💧', cls:'info', text:'Water stress risk is underweighted in current PD models. <strong style="color:var(--gold)">14 counterparties</strong> with operations in water-scarce basins (Indus, Colorado, Murray-Darling) face operational disruption risk not yet in credit models.' },
+  ],
+  flood: [
+    { icon:'🌊', cls:'crit', text:'Flood exposure is concentrated in <strong style="color:#f87171">South/Southeast Asian portfolio</strong>. The 1-in-100-year flood event has 40% probability of occurring before 2035 under RCP 8.5 — up from 20% under historical norms.' },
+    { icon:'⚠️', cls:'warn', text:'Adani Power (not in current portfolio) and <strong style="color:var(--gold)">NTPC thermal plants</strong> on river plains show highest flood VaR at ₹14,200 Cr. Recommend flood covenant in new lending documentation.' },
+  ],
+  heat: [
+    { icon:'🌡️', cls:'crit', text:'Heat stress reduces labor productivity in outdoor operations by <strong style="color:#f87171">12–18%</strong> in the Middle East and South Asian contexts. Mining (Rio Tinto Australia) and Oil &amp; Gas field ops are most exposed.' },
+    { icon:'⚠️', cls:'warn', text:'Data center collateral faces <strong style="color:var(--gold)">cooling cost escalation</strong> of 22–35% under RCP 8.5 — indirect credit risk for technology sector counterparties not yet modeled.' },
+  ],
+  wildfire: [
+    { icon:'🔥', cls:'crit', text:'PG&amp;E wildfire tail risk dominates this hazard category. Under RCP 8.5, <strong style="color:#f87171">$3.4B collateral value</strong> in California utility infrastructure faces >50% probability of wildfire impact by 2035.' },
+    { icon:'⚠️', cls:'warn', text:'Insurance retreat from California and Australian wildfire zones creates <strong style="color:var(--gold)">collateral gap risk</strong> — uninsured asset ratios rising from 12% (2020) to projected 38% (2030). LGD uplift needed.' },
+  ],
+  storm: [
+    { icon:'🌀', cls:'crit', text:'Atlantic hurricane intensification under RCP 8.5 increases US Gulf Coast energy infrastructure damage risk by <strong style="color:#f87171">3.1x</strong> vs. historical average. Chevron, Shell, Exxon Gulf operations exposed.' },
+    { icon:'⚠️', cls:'warn', text:'Cyclone risk in Bay of Bengal threatens <strong style="color:var(--gold)">NTPC and Adani coastal assets</strong> in Odisha and Andhra Pradesh. Expected annual damage rising from ₹800 Cr to ₹2,400 Cr by 2035.' },
+  ],
+  sealevel: [
+    { icon:'🌊', cls:'crit', text:'Sea level rise of 0.8–1.2m under RCP 8.5 by 2100 would permanently inundate <strong style="color:#f87171">$420B of global real estate collateral</strong> in the portfolio. Near-term (2030–2040) storm surge risk is the immediate credit concern.' },
+    { icon:'⚠️', cls:'warn', text:'Singapore, Mumbai, Jakarta, and Ho Chi Minh City — major financial centers with <strong style="color:var(--gold)">significant RE collateral concentration</strong> — face 1-in-50-year flood events becoming annual by 2040 under RCP 8.5.' },
+  ],
+};
+
+const TRANS_AI = {
+  baseline:         [{ icon:'✅', cls:'ok', text:'Under baseline, portfolio climate risk remains manageable. <strong style="color:#34d399">No immediate rating actions required.</strong> Recommend ongoing monitoring of carbon policy developments in key jurisdictions.' }],
+  below2_immediate: [
+    { icon:'⚠️', cls:'warn', text:'Immediate 2°C policy action creates a <strong style="color:#f87171">sharp front-loaded carbon price shock</strong> ($110/t by 2026). Energy sector counterparties face abrupt revenue cliff — covenant breach risk elevated for Chevron and TotalEnergies within 18 months.' },
+    { icon:'📉', cls:'crit', text:'Immediate transition eliminates <strong style="color:#f87171">$2.1T of fossil asset value</strong> globally by 2035. Portfolio exposure to this stranding: ~$8.4B across 6 counterparties. Proactive restructuring discussions recommended.' },
+  ],
+  below2_delayed: [
+    { icon:'⚠️', cls:'warn', text:'Delayed transition creates a <strong style="color:var(--gold)">cliff-edge scenario post-2030</strong>. Near-term risk appears manageable, but accumulated policy debt creates a sharp correction — higher EL than immediate transition by 2035.' },
+    { icon:'📉', cls:'info', text:'Energy sector borrowers have a <strong style="color:var(--gold)">6–8 year window</strong> to accelerate transition plans. Those that fail to act will face 2–3 notch rating downgrades clustered in 2030–2033. Engage counterparties now.' },
+    { icon:'✅', cls:'ok', text:'Renewable energy counterparties (Adani Green, NTPC Renewables) benefit most in this scenario — delayed action maintains conventional revenue while building transition capacity. Consider increasing allocation.' },
+  ],
+  netzero: [
+    { icon:'🔴', cls:'crit', text:'Net Zero 2050 is the <strong style="color:#f87171">most severe transition scenario</strong> for current portfolio composition. Oil &amp; Gas sector faces 28% revenue decline by 2040. Immediate portfolio rebalancing toward low-carbon sectors recommended.' },
+    { icon:'📉', cls:'crit', text:'<strong style="color:#f87171">PG&amp;E, Chevron, and TotalEnergies</strong> face 1–2 notch rating downgrades under Net Zero by 2028. Capital requirements increase by ~$680M. Risk appetite framework review required.' },
+    { icon:'📈', cls:'info', text:'Green hydrogen, offshore wind, and battery storage emerge as <strong style="color:var(--gold)">new credit opportunities</strong>. Net Zero scenario creates $12T of investable low-carbon infrastructure — portfolio should seek 15–20% allocation by 2030.' },
+  ],
+  fragmented: [
+    { icon:'✅', cls:'ok', text:'Fragmented World scenario maintains <strong style="color:#34d399">relatively stable credit environment</strong> through 2030. Low carbon prices ($65/t) limit immediate transition risk. However, physical risk remains elevated regardless of policy pathway.' },
+    { icon:'⚠️', cls:'warn', text:'Policy fragmentation creates <strong style="color:var(--gold)">regulatory divergence risk</strong> — counterparties with EU-facing operations face CBAM costs even under low global carbon prices. TotalEnergies and Rio Tinto EU operations most affected.' },
+  ],
+};
+
+// ═══════════════════════════════════════════════
+// CHART INSTANCES (for updating)
+// ═══════════════════════════════════════════════
+let charts = {};
+let currentScenario = 'below2_delayed';
+
+const GOLD='#FFE600',RED='#ef4444',ORANGE='#f97316',AMBER='#f59e0b',BLUE='#3b82f6',GREEN='#10b981',PURPLE='#8b5cf6';
+Chart.defaults.color='#6b7280';
+Chart.defaults.borderColor='#1e2533';
+Chart.defaults.font.family="'IBM Plex Sans', sans-serif";
+Chart.defaults.font.size=10;
+
+function axisTitle(txt) { return { display:true, text:txt, color:'#6b7280', font:{size:9,family:"'IBM Plex Sans',sans-serif"}, padding:4 }; }
+
+function mkChart(id, type, labels, datasets, extraOpts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return null;
+  if (charts[id]) { charts[id].destroy(); }
+  const baseScales = type==='radar'||type==='doughnut' ? {} : {
+    x:{ grid:{color:'#1e2533'}, ticks:{color:'#6b7280'} },
+    y:{ grid:{color:'#1e2533'}, ticks:{color:'#6b7280'} }
+  };
+  const opts = { responsive:true, maintainAspectRatio:true,
+    plugins:{ legend:{ display:true, labels:{boxWidth:10,padding:10,color:'#9ca3af'} } },
+    scales: baseScales, ...extraOpts };
+  charts[id] = new Chart(ctx, { type, data:{labels,datasets}, options:opts });
+  return charts[id];
+}
+
+// ═══════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════
+function showTab(id, btn) {
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// GLOBAL SCENARIO SWITCH
+// ═══════════════════════════════════════════════
+function applyGlobalScenario() {
+  currentScenario = document.getElementById('globalScenario').value;
+  const s = SCENARIOS[currentScenario];
+  const deltas = calcScenarioDeltas(currentScenario);
+
+  // Update chip
+  document.getElementById('activeScenarioChip').textContent = '📅 Scenario: '+s.label;
+  // Sync all dropdowns
+  ['transScenario','cpScenario'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = currentScenario;
+  });
+
+  // Update overview KPIs — computed from engine
+  const baseEL = calcPortfolioEL('baseline');
+  const stressEL = calcPortfolioEL(currentScenario);
+  const elIncrement = +(stressEL - baseEL).toFixed(1);
+  const totalRWA = Object.keys(CP_MASTER).reduce((s,k)=>s+calcCredit(k,currentScenario).rwa,0);
+  const wtdPDInc = deltas.pdIncDisplay;
+  const wtdLGDInc = deltas.lgdInc;
+
+  animateVal('ov-pd',  (wtdPDInc  >= 0 ? '+' : '') + wtdPDInc.toFixed(1)  + '%');
+  animateVal('ov-lgd', (wtdLGDInc >= 0 ? '+' : '') + wtdLGDInc.toFixed(1) + '%');
+  animateVal('ov-el',  (elIncrement >= 0 ? '+' : '') + '$' + Math.abs(elIncrement).toFixed(1) + 'M');
+  animateVal('ov-rwa', '+$' + Math.round(totalRWA) + 'M');
+
+  // Geo labels — proportional to portfolio EL lift
+  const pctLift = baseEL > 0 ? ((stressEL - baseEL) / baseEL) : 0;
+  document.getElementById('ov-asia-insight').textContent = (pctLift*1.5*100>=0?'+':'')+Math.round(pctLift*1.5*100)+'% EL';
+  document.getElementById('ov-chev-insight').textContent = chevronInsightEL(currentScenario);
+  document.getElementById('ov-geo-asia').textContent     = (pctLift*1.5*100>=0?'+':'')+Math.round(pctLift*1.5*100)+'% EL';
+  document.getElementById('ov-geo-us').textContent       = (pctLift*1.0*100>=0?'+':'')+Math.round(pctLift*1.0*100)+'% EL';
+
+  // Update heatmap
+  drawHeatmap(currentScenario);
+  // Update sector chart
+  updateSectorChart();
+  // Update transition
+  updateTransition();
+  // Update counterparty
+  updateCounterparty();
+}
+
+function animateVal(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('transition-highlight');
+  el.textContent = val;
+  setTimeout(()=>el.classList.remove('transition-highlight'),500);
+}
+
+// ═══════════════════════════════════════════════
+// WORLD HEATMAP (SVG-based on Canvas)
+// ═══════════════════════════════════════════════
+// WORLD HEATMAP — proper country-shape SVG rendered onto canvas
+// Uses simplified but geographically accurate country polygons
+// Color: yellow (low) → orange → red → dark red (critical)
+// ═══════════════════════════════════════════════
+
+// Country risk scores per scenario [0..1]
+// Keyed by ISO 3-letter, value = risk intensity
+// ═══════════════════════════════════════════════
+// CHOROPLETH WORLD MAP  (D3 + Natural Earth TopoJSON)
+// Loads once, recolors on scenario change
+// ═══════════════════════════════════════════════
+
+// ISO-3166 alpha-3 → risk score [0..1] per scenario
+const COUNTRY_RISK = {
+  baseline: {
+    USA:0.22,CAN:0.18,MEX:0.20,BRA:0.16,ARG:0.12,COL:0.14,CHL:0.10,PER:0.13,VEN:0.15,BOL:0.11,ECU:0.12,PRY:0.09,URY:0.10,GUY:0.08,
+    GBR:0.18,FRA:0.17,DEU:0.19,ITA:0.16,ESP:0.15,NLD:0.18,BEL:0.17,CHE:0.15,POL:0.14,SWE:0.12,NOR:0.11,DNK:0.13,FIN:0.10,AUT:0.14,PRT:0.13,GRC:0.14,ROU:0.13,HUN:0.12,CZE:0.13,SVK:0.12,BGR:0.12,HRV:0.11,SRB:0.11,UKR:0.16,RUS:0.20,TUR:0.22,
+    CHN:0.38,IND:0.32,JPN:0.28,KOR:0.26,IDN:0.30,THA:0.28,VNM:0.29,MYS:0.27,PHL:0.31,BGD:0.33,PAK:0.28,MMR:0.27,KHM:0.26,LKA:0.24,NPL:0.22,KAZ:0.18,UZB:0.16,MNG:0.14,
+    SAU:0.24,IRN:0.22,IRQ:0.20,ARE:0.22,QAT:0.21,KWT:0.20,OMN:0.19,YEM:0.18,ISR:0.18,JOR:0.17,LBN:0.16,SYR:0.15,
+    ZAF:0.20,NGA:0.18,EGY:0.19,ETH:0.15,KEN:0.14,TZA:0.13,GHA:0.14,AGO:0.15,MOZ:0.13,MDG:0.12,CMR:0.13,CIV:0.12,SEN:0.12,SDN:0.16,DZA:0.17,MAR:0.15,LBY:0.14,TUN:0.14,
+    AUS:0.22,NZL:0.14,
+  },
+  below2_immediate: {
+    USA:0.52,CAN:0.44,MEX:0.48,BRA:0.38,ARG:0.32,COL:0.36,CHL:0.28,PER:0.33,VEN:0.40,BOL:0.30,ECU:0.32,PRY:0.25,URY:0.27,GUY:0.22,
+    GBR:0.46,FRA:0.44,DEU:0.50,ITA:0.42,ESP:0.40,NLD:0.47,BEL:0.45,CHE:0.40,POL:0.42,SWE:0.34,NOR:0.30,DNK:0.36,FIN:0.28,AUT:0.38,PRT:0.36,GRC:0.40,ROU:0.38,HUN:0.36,CZE:0.40,SVK:0.36,BGR:0.36,HRV:0.34,SRB:0.34,UKR:0.42,RUS:0.50,TUR:0.54,
+    CHN:0.72,IND:0.68,JPN:0.60,KOR:0.58,IDN:0.66,THA:0.62,VNM:0.65,MYS:0.60,PHL:0.68,BGD:0.72,PAK:0.64,MMR:0.62,KHM:0.60,LKA:0.56,NPL:0.52,KAZ:0.44,UZB:0.40,MNG:0.36,
+    SAU:0.58,IRN:0.52,IRQ:0.50,ARE:0.55,QAT:0.53,KWT:0.50,OMN:0.48,YEM:0.45,ISR:0.44,JOR:0.42,LBN:0.40,SYR:0.38,
+    ZAF:0.48,NGA:0.44,EGY:0.46,ETH:0.38,KEN:0.36,TZA:0.34,GHA:0.36,AGO:0.38,MOZ:0.34,MDG:0.32,CMR:0.34,CIV:0.32,SEN:0.32,SDN:0.42,DZA:0.44,MAR:0.40,LBY:0.38,TUN:0.38,
+    AUS:0.50,NZL:0.36,
+  },
+  below2_delayed: {
+    USA:0.58,CAN:0.50,MEX:0.54,BRA:0.44,ARG:0.36,COL:0.42,CHL:0.32,PER:0.38,VEN:0.46,BOL:0.34,ECU:0.36,PRY:0.28,URY:0.30,GUY:0.25,
+    GBR:0.52,FRA:0.50,DEU:0.56,ITA:0.48,ESP:0.46,NLD:0.53,BEL:0.51,CHE:0.46,POL:0.48,SWE:0.38,NOR:0.34,DNK:0.42,FIN:0.32,AUT:0.44,PRT:0.42,GRC:0.46,ROU:0.44,HUN:0.42,CZE:0.46,SVK:0.42,BGR:0.42,HRV:0.40,SRB:0.40,UKR:0.48,RUS:0.58,TUR:0.62,
+    CHN:0.82,IND:0.78,JPN:0.68,KOR:0.66,IDN:0.76,THA:0.72,VNM:0.75,MYS:0.70,PHL:0.78,BGD:0.82,PAK:0.74,MMR:0.72,KHM:0.70,LKA:0.65,NPL:0.60,KAZ:0.52,UZB:0.48,MNG:0.44,
+    SAU:0.66,IRN:0.60,IRQ:0.58,ARE:0.64,QAT:0.62,KWT:0.60,OMN:0.57,YEM:0.54,ISR:0.52,JOR:0.50,LBN:0.48,SYR:0.46,
+    ZAF:0.56,NGA:0.52,EGY:0.54,ETH:0.44,KEN:0.42,TZA:0.40,GHA:0.42,AGO:0.44,MOZ:0.40,MDG:0.38,CMR:0.40,CIV:0.38,SEN:0.38,SDN:0.50,DZA:0.52,MAR:0.48,LBY:0.46,TUN:0.46,
+    AUS:0.58,NZL:0.42,
+  },
+  netzero: {
+    USA:0.75,CAN:0.65,MEX:0.70,BRA:0.58,ARG:0.50,COL:0.56,CHL:0.44,PER:0.52,VEN:0.62,BOL:0.48,ECU:0.50,PRY:0.40,URY:0.42,GUY:0.36,
+    GBR:0.68,FRA:0.66,DEU:0.72,ITA:0.64,ESP:0.62,NLD:0.70,BEL:0.68,CHE:0.62,POL:0.66,SWE:0.52,NOR:0.46,DNK:0.58,FIN:0.44,AUT:0.60,PRT:0.58,GRC:0.62,ROU:0.60,HUN:0.58,CZE:0.62,SVK:0.58,BGR:0.58,HRV:0.56,SRB:0.56,UKR:0.66,RUS:0.76,TUR:0.80,
+    CHN:0.96,IND:0.92,JPN:0.84,KOR:0.82,IDN:0.90,THA:0.88,VNM:0.90,MYS:0.86,PHL:0.92,BGD:0.95,PAK:0.90,MMR:0.88,KHM:0.86,LKA:0.82,NPL:0.78,KAZ:0.70,UZB:0.66,MNG:0.60,
+    SAU:0.84,IRN:0.78,IRQ:0.76,ARE:0.82,QAT:0.80,KWT:0.78,OMN:0.75,YEM:0.72,ISR:0.70,JOR:0.68,LBN:0.66,SYR:0.64,
+    ZAF:0.74,NGA:0.70,EGY:0.72,ETH:0.62,KEN:0.60,TZA:0.58,GHA:0.60,AGO:0.62,MOZ:0.58,MDG:0.56,CMR:0.58,CIV:0.56,SEN:0.56,SDN:0.68,DZA:0.70,MAR:0.66,LBY:0.64,TUN:0.64,
+    AUS:0.76,NZL:0.58,
+  },
+  fragmented: {
+    USA:0.32,CAN:0.26,MEX:0.30,BRA:0.24,ARG:0.20,COL:0.22,CHL:0.16,PER:0.20,VEN:0.26,BOL:0.18,ECU:0.20,PRY:0.14,URY:0.15,GUY:0.12,
+    GBR:0.28,FRA:0.26,DEU:0.30,ITA:0.24,ESP:0.23,NLD:0.28,BEL:0.27,CHE:0.24,POL:0.24,SWE:0.18,NOR:0.16,DNK:0.20,FIN:0.14,AUT:0.22,PRT:0.21,GRC:0.24,ROU:0.22,HUN:0.20,CZE:0.22,SVK:0.20,BGR:0.20,HRV:0.19,SRB:0.19,UKR:0.26,RUS:0.32,TUR:0.34,
+    CHN:0.52,IND:0.46,JPN:0.38,KOR:0.36,IDN:0.44,THA:0.40,VNM:0.42,MYS:0.38,PHL:0.44,BGD:0.48,PAK:0.40,MMR:0.38,KHM:0.36,LKA:0.32,NPL:0.30,KAZ:0.24,UZB:0.20,MNG:0.18,
+    SAU:0.34,IRN:0.30,IRQ:0.28,ARE:0.32,QAT:0.30,KWT:0.28,OMN:0.26,YEM:0.24,ISR:0.22,JOR:0.20,LBN:0.18,SYR:0.16,
+    ZAF:0.28,NGA:0.24,EGY:0.26,ETH:0.20,KEN:0.18,TZA:0.16,GHA:0.18,AGO:0.20,MOZ:0.16,MDG:0.14,CMR:0.16,CIV:0.14,SEN:0.14,SDN:0.22,DZA:0.24,MAR:0.20,LBY:0.18,TUN:0.18,
+    AUS:0.30,NZL:0.18,
+  },
+};
+
+// Colour scale: navy → teal → amber → red → dark crimson
+function riskColor(v) {
+  v = Math.max(0, Math.min(1, v));
+  // 5-stop gradient
+  const stops = [
+    [0.00, [15,  40,  90]],
+    [0.25, [30, 100, 160]],
+    [0.50, [200,140,  20]],
+    [0.75, [210, 50,  20]],
+    [1.00, [100,  5,   5]],
+  ];
+  let i = 0;
+  while (i < stops.length - 2 && v > stops[i+1][0]) i++;
+  const [t0, c0] = stops[i];
+  const [t1, c1] = stops[i+1];
+  const t = (v - t0) / (t1 - t0);
+  const r = Math.round(c0[0] + t*(c1[0]-c0[0]));
+  const g = Math.round(c0[1] + t*(c1[1]-c0[1]));
+  const b = Math.round(c0[2] + t*(c1[2]-c0[2]));
+  return `rgb(${r},${g},${b})`;
+}
+
+// ISO numeric → ISO alpha-3 lookup (subset covering our risk data)
+const NUM_TO_A3 = {
+  4:'AFG',8:'ALB',12:'DZA',24:'AGO',32:'ARG',36:'AUS',40:'AUT',50:'BGD',56:'BEL',68:'BOL',76:'BRA',100:'BGR',
+  116:'KHM',120:'CMR',124:'CAN',152:'CHL',156:'CHN',170:'COL',188:'CRI',192:'CUB',203:'CZE',208:'DNK',
+  218:'ECU',818:'EGY',231:'ETH',246:'FIN',250:'FRA',276:'DEU',288:'GHA',300:'GRC',320:'GTM',192:'CUB',
+  340:'HND',348:'HUN',356:'IND',360:'IDN',364:'IRN',368:'IRQ',372:'IRL',376:'ISR',380:'ITA',388:'JAM',
+  392:'JPN',400:'JOR',398:'KAZ',404:'KEN',410:'KOR',414:'KWT',418:'LAO',422:'LBN',434:'LBY',484:'MEX',
+  496:'MNG',504:'MAR',508:'MOZ',104:'MMR',524:'NPL',528:'NLD',540:'NCL',554:'NZL',566:'NGA',578:'NOR',
+  586:'PAK',591:'PAN',604:'PER',608:'PHL',616:'POL',620:'PRT',630:'PRI',642:'ROU',643:'RUS',682:'SAU',
+  686:'SEN',694:'SLE',706:'SOM',710:'ZAF',724:'ESP',729:'SDN',752:'SWE',756:'CHE',760:'SYR',158:'TWN',
+  762:'TJK',764:'THA',792:'TUR',800:'UGA',804:'UKR',784:'ARE',826:'GBR',840:'USA',858:'URY',860:'UZB',
+  862:'VEN',704:'VNM',887:'YEM',894:'ZMB',716:'ZWE',191:'HRV',688:'SRB',528:'NLD',144:'LKA',
+};
+
+let mapInitialised = false;
+
+function drawHeatmap(scenario) {
+  const riskMap = COUNTRY_RISK[scenario] || COUNTRY_RISK.below2_delayed;
+  const tag = document.getElementById('hmScenarioTag');
+  if (tag && SCENARIOS && SCENARIOS[scenario]) tag.textContent = SCENARIOS[scenario].label;
+
+  const svgEl = document.getElementById('worldMapSVG');
+  if (!svgEl) return;
+
+  if (mapInitialised) {
+    // Already drawn — just recolor
+    svgEl.querySelectorAll('path[data-iso]').forEach(p => {
+      const iso = p.getAttribute('data-iso');
+      const v   = riskMap[iso] !== undefined ? riskMap[iso] : null;
+      p.style.fill = v !== null ? riskColor(v) : '#111827';
+    });
+    return;
+  }
+
+  // ── First load: fetch TopoJSON and build map ──
+  const W = svgEl.parentElement.offsetWidth  || 300;
+  const H = svgEl.parentElement.offsetHeight || 190;
+  svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const tooltip = document.getElementById('mapTooltip');
+
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(r => r.json())
+    .then(world => {
+      // TopoJSON → GeoJSON via inline lightweight converter
+      // We use the topojson-client CDN (already in page head after this patch)
+      const countries = topojson.feature(world, world.objects.countries);
+
+      // Mercator-ish projection fitted to our box
+      const scale  = W / (2 * Math.PI) * 0.95;
+      const proj   = geoMercatorSimple(scale, W/2, H/1.6);
+      const path   = geoPathSimple(proj);
+
+      let svgContent = '';
+      countries.features.forEach(f => {
+        const numId = parseInt(f.id, 10);
+        const iso   = NUM_TO_A3[numId] || null;
+        const v     = iso && riskMap[iso] !== undefined ? riskMap[iso] : null;
+        const fill  = v !== null ? riskColor(v) : '#111827';
+        const d     = path(f);
+        if (!d) return;
+        svgContent += `<path d="${d}" data-iso="${iso||''}" data-name="${f.properties ? f.properties.name||'' : ''}"
+          style="fill:${fill};stroke:#0d1824;stroke-width:0.4;transition:fill 0.4s ease;cursor:pointer"
+          onmouseenter="showMapTip(event,this)" onmouseleave="hideMapTip()"/>`;
+      });
+      svgEl.innerHTML = svgContent;
+      mapInitialised = true;
+    })
+    .catch(() => {
+      // Fallback: show a simple message if fetch fails
+      svgEl.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#4b5563" font-size="11" font-family=\'IBM Plex Sans,sans-serif\'>Map requires internet connection</text>';
+    });
+}
+
+// Lightweight Mercator projection (avoids needing D3)
+function geoMercatorSimple(scale, cx, cy) {
+  return function(lng, lat) {
+    const x = cx + scale * (lng * Math.PI / 180);
+    const sinLat = Math.sin(lat * Math.PI / 180);
+    const y = cy - scale * Math.log((1 + sinLat) / (1 - sinLat)) / 2;
+    return [x, y];
+  };
+}
+
+// Lightweight GeoJSON path generator
+function geoPathSimple(proj) {
+  function coordsToD(coords, close) {
+    let d = '';
+    coords.forEach((pt, i) => {
+      const [x, y] = proj(pt[0], pt[1]);
+      if (!isFinite(x) || !isFinite(y)) return;
+      d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    return d + (close ? 'Z' : '');
+  }
+  return function(feature) {
+    if (!feature || !feature.geometry) return '';
+    const g = feature.geometry;
+    try {
+      if (g.type === 'Polygon') {
+        return g.coordinates.map(ring => coordsToD(ring, true)).join(' ');
+      } else if (g.type === 'MultiPolygon') {
+        return g.coordinates.map(poly => poly.map(ring => coordsToD(ring, true)).join(' ')).join(' ');
+      }
+    } catch(e) { return ''; }
+    return '';
+  };
+}
+
+// Tooltip handlers
+function showMapTip(e, el) {
+  const tt = document.getElementById('mapTooltip');
+  if (!tt) return;
+  const iso  = el.getAttribute('data-iso');
+  const sc   = typeof currentScenario !== 'undefined' ? currentScenario : 'below2_delayed';
+  const risk = COUNTRY_RISK[sc] && iso && COUNTRY_RISK[sc][iso];
+  if (!iso || !risk) return;
+  const lvl  = risk < 0.25 ? 'Low' : risk < 0.5 ? 'Moderate' : risk < 0.75 ? 'High' : 'Critical';
+  tt.innerHTML = `<span style="color:var(--gold);font-weight:600">${iso}</span><br>
+    Risk Score: <span style="color:${riskColor(risk)};font-weight:700">${Math.round(risk*100)}%</span>
+    &nbsp;·&nbsp; <span style="color:var(--text-muted)">${lvl}</span>`;
+  const rect = el.closest('div').getBoundingClientRect();
+  const ex = e.clientX - rect.left + 8;
+  const ey = e.clientY - rect.top  - 10;
+  tt.style.left = Math.min(ex, rect.width - 160) + 'px';
+  tt.style.top  = Math.max(ey, 4) + 'px';
+  tt.style.display = 'block';
+}
+function hideMapTip() {
+  const tt = document.getElementById('mapTooltip');
+  if (tt) tt.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// OVERVIEW CHARTS
+// ═══════════════════════════════════════════════
+function updateSectorChart() {
+  const scaleMap = { baseline:1, below2_immediate:1.3, below2_delayed:1.5, netzero:2.2, fragmented:0.9 };
+  const f = scaleMap[currentScenario] || 1;
+  const base = [[18,20,23,26,29,32,36,41,48],[16,18,20,22,24,25,26,29,31],[13,15,16,17,18,19,20,22,24],[8,9,9,10,10,11,11,12,13]];
+  mkChart('sectorChart','line',['2024','2025','2026','2027','2028','2029','2030','2035','2040'],[
+    {label:'Energy',data:base[0].map((v,i)=>+(v*Math.pow(f,i/8)).toFixed(1)),borderColor:ORANGE,backgroundColor:'rgba(249,115,22,.08)',fill:true,tension:.4},
+    {label:'Real Estate',data:base[1].map((v,i)=>+(v*Math.pow(f*.8,i/8)).toFixed(1)),borderColor:RED,backgroundColor:'rgba(239,68,68,.06)',fill:true,tension:.4},
+    {label:'Utilities',data:base[2].map((v,i)=>+(v*Math.pow(f*.7,i/8)).toFixed(1)),borderColor:AMBER,backgroundColor:'rgba(245,158,11,.05)',fill:true,tension:.4},
+    {label:'Financials',data:base[3].map((v,i)=>+(v*Math.pow(1.05,i/8)).toFixed(1)),borderColor:BLUE,backgroundColor:'rgba(59,130,246,.05)',fill:true,tension:.4},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Year')},y:{grid:{color:'#1e2533'},title:axisTitle('EL Impact (% of Sector Exposure)')}} });
+
+  mkChart('sectorPerfChart','line',['Sep 23','Nov 23','Jan 24','Mar 24','May 24','Jul 24','Sep 24','Nov 24'],[
+    {label:'Energy',data:[4,8,12,17,22,28,35,42],borderColor:ORANGE,tension:.4,fill:false},
+    {label:'Real Estate',data:[4,7,10,14,18,22,26,31],borderColor:RED,tension:.4,fill:false},
+    {label:'Utilities',data:[4,6,9,11,14,17,20,23],borderColor:AMBER,tension:.4,fill:false},
+    {label:'Financials',data:[4,5,7,8,9,11,12,14],borderColor:BLUE,tension:.4,fill:false},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Month')},y:{grid:{color:'#1e2533'},title:axisTitle('Cumulative Climate Risk Score')}} });
+}
+
+// ═══════════════════════════════════════════════
+// COUNTERPARTY
+// ═══════════════════════════════════════════════
+function updateCounterparty() {
+  const cpKey = document.getElementById('cpSelect').value;
+  const scKey = document.getElementById('cpScenario').value || currentScenario;
+  const cp = COUNTERPARTIES[cpKey];
+
+  document.getElementById('cpLogo').textContent = cp.logo;
+  document.getElementById('cpName').textContent = cp.name;
+  document.getElementById('cpMeta').textContent = cp.meta;
+  document.getElementById('cp-rev').textContent = cp.rev;
+  document.getElementById('cp-rev-sub').textContent = cp.revSub;
+  document.getElementById('cp-ebitda').textContent = cp.ebitda;
+  document.getElementById('cp-ebitda-sub').textContent = cp.ebitdaSub;
+  document.getElementById('cp-ci').textContent = cp.ci;
+  document.getElementById('cp-em').textContent = cp.em;
+
+  // Risk level badge
+  const riskColors = { high:'badge high', med:'badge med', mod:'badge mod', low:'badge low' };
+  document.getElementById('cpRiskBadge').className = 'badge '+cp.riskBadge;
+  document.getElementById('cpRiskBadge').textContent = cp.riskLabel;
+  document.getElementById('cpWatchBadge').textContent = cp.watchLabel;
+
+  // Progress bars
+  const bars = [['pb-carbon',cp.carbonRisk,'up','#ef4444'],['pb-strand',cp.strandRisk,'up','#f97316'],['pb-policy',cp.policyRisk,'neutral','#f59e0b'],['pb-flood',cp.floodRisk,'neutral','#3b82f6'],['pb-heat',cp.heatRisk,'neutral','#60a5fa'],['pb-water',cp.waterRisk,'neutral','#93c5fd']];
+  bars.forEach(([id,val,cls,col])=>{
+    document.getElementById(id).style.width=val+'%';
+    document.getElementById(id).style.background=col;
+    document.getElementById(id+'-v').textContent=val+'%';
+    document.getElementById(id+'-v').className='pct '+cls;
+  });
+
+  // Revenue chart
+  const rd = cp.revData;
+  const labels = ['2024','2026','2028','2030','2032','2035','2040'];
+  mkChart('revenueChart','line',labels,[
+    {label:'Baseline',data:rd.baseline,borderColor:GREEN,tension:.4,fill:false},
+    {label:'Below 2°C Imm.',data:rd.below2_immediate,borderColor:AMBER,tension:.4,fill:false,borderDash:[4,2]},
+    {label:'Below 2°C Del.',data:rd.below2_delayed,borderColor:ORANGE,tension:.4,fill:false,borderDash:[2,2]},
+    {label:'Net Zero 2050',data:rd.netzero,borderColor:RED,tension:.4,fill:false,borderDash:[1,2]},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Year')},y:{grid:{color:'#1e2533'},title:axisTitle('Revenue ($B)')}} });
+
+  // PD/LGD chart
+  mkChart('cpRiskChart','bar',['Baseline','Below 2°C','Net Zero 2050'],[
+    {label:'PD (%)',data:cp.metrics.pd,backgroundColor:[GREEN,AMBER,RED]},
+    {label:'LGD (%)',data:cp.metrics.lgd,backgroundColor:['rgba(16,185,129,.3)','rgba(245,158,11,.3)','rgba(239,68,68,.3)']},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Scenario')},y:{grid:{color:'#1e2533'},title:axisTitle('Rate (%)'), beginAtZero:true}} });
+
+  // Metrics table — computed from engine
+  const m = cp.metrics;
+  const cpKey2 = document.getElementById('cpSelect').value;
+  const [r0, r1, r2] = ['baseline','below2_delayed','netzero'].map(s => calcCredit(cpKey2, s));
+  const eadUSD = CP_MASTER[cpKey2].eadUSD;
+
+  document.getElementById('cpMetricsTable').innerHTML=`
+    <tr><th>Metric</th><th>Baseline</th><th>Below 2°C Del.</th><th>Net Zero</th></tr>
+    <tr><td>EAD (USD)</td><td colspan="3" class="neutral">$${eadUSD.toFixed(0)}M &nbsp;(₹${CP_MASTER[cpKey2].eadINR_Cr.toLocaleString()} Cr @ ₹83/$)</td></tr>
+    <tr><td>PD (%)</td><td>${r0.pd.toFixed(2)}%</td><td class="up">${r1.pd.toFixed(2)}%</td><td class="up">${r2.pd.toFixed(2)}%</td></tr>
+    <tr><td>LGD (%)</td><td>${r0.lgd.toFixed(1)}%</td><td class="up">${r1.lgd.toFixed(1)}%</td><td class="up">${r2.lgd.toFixed(1)}%</td></tr>
+    <tr><td>EL = EAD×PD×LGD</td><td class="neutral">$${r0.el.toFixed(1)}M</td><td class="up">$${r1.el.toFixed(1)}M</td><td class="up">$${r2.el.toFixed(1)}M</td></tr>
+    <tr><td>Capital (×12 EL)</td><td>$${r0.capital.toFixed(1)}M</td><td class="up">$${r1.capital.toFixed(1)}M</td><td class="up">$${r2.capital.toFixed(1)}M</td></tr>
+    <tr><td>RWA (Cap / 8%)</td><td>$${Math.round(r0.rwa)}M</td><td class="up">$${Math.round(r1.rwa)}M</td><td class="up">$${Math.round(r2.rwa)}M</td></tr>`;
+
+  // AI section
+  const aiHtml = cp.ai.map(a=>`<div class="ai-insight-row"><div class="ai-icon ${a.cls}">${a.icon}</div><div style="font-size:12px;line-height:1.6">${a.text}</div></div>`).join('');
+  document.getElementById('cpAIContent').innerHTML = aiHtml;
+}
+
+// ═══════════════════════════════════════════════
+// TRANSITION
+// ═══════════════════════════════════════════════
+function updateTransition() {
+  const sc = document.getElementById('transScenario').value;
+  const d = TRANS_DATA[sc];
+  const s = SCENARIOS[sc];
+  if (!d || !s) return;
+
+  animateVal('tr-rev', (d.rev<=0?'':'+')+ d.rev+'%');
+  animateVal('tr-ebitda', (d.ebitda<=0?'':'+')+ d.ebitda+'%');
+  animateVal('tr-margin', (d.margin<=0?'':'+')+ d.margin+'%');
+  animateVal('tr-cp', '$'+s.carbonPrice+'/t');
+
+  // Sector vuln table
+  const sv = document.getElementById('sectorVulnTable');
+  sv.innerHTML=`<tr><th>Sector</th><th>Rev. Impact</th><th>EBITDA</th><th>Risk</th></tr>
+    <tr><td>Energy</td><td class="${d.svEn[0]<=0?'up':'dn'}">${d.svEn[0]}%</td><td class="${d.svEn[1]<=0?'up':'dn'}">${d.svEn[1]}%</td><td><span class="badge ${Math.abs(d.svEn[0])>15?'high':Math.abs(d.svEn[0])>8?'med':'mod'}">Critical</span></td></tr>
+    <tr><td>Utilities</td><td class="${d.svUt[0]<=0?'up':'dn'}">${d.svUt[0]}%</td><td class="${d.svUt[1]<=0?'up':'dn'}">${d.svUt[1]}%</td><td><span class="badge ${Math.abs(d.svUt[0])>10?'high':'med'}">High</span></td></tr>
+    <tr><td>Mining</td><td class="${d.svMn[0]<=0?'up':'dn'}">${d.svMn[0]}%</td><td class="${d.svMn[1]<=0?'up':'dn'}">${d.svMn[1]}%</td><td><span class="badge ${Math.abs(d.svMn[0])>8?'med':'mod'}">Med</span></td></tr>
+    <tr><td>Transport</td><td class="${d.svTr[0]<=0?'up':'dn'}">${d.svTr[0]}%</td><td class="${d.svTr[1]<=0?'up':'dn'}">${d.svTr[1]}%</td><td><span class="badge mod">Med</span></td></tr>
+    <tr><td>Real Estate</td><td class="${d.svRe[0]<=0?'up':'dn'}">${d.svRe[0]}%</td><td class="${d.svRe[1]<=0?'up':'dn'}">${d.svRe[1]}%</td><td><span class="badge ${Math.abs(d.svRe[0])>5?'mod':'low'}">Low-Med</span></td></tr>
+    <tr><td>Financials</td><td class="${d.svFi[0]>=0?'dn':'up'}">${d.svFi[0]>=0?'+':''}${d.svFi[0]}%</td><td class="${d.svFi[1]>=0?'dn':'up'}">${d.svFi[1]>=0?'+':''}${d.svFi[1]}%</td><td><span class="badge low">Low</span></td></tr>`;
+
+  // Borrower table — computed from EL engine
+  const bt = document.getElementById('borrowerTable');
+  const borrowerDefs = [
+    ['chevron',  'Chevron',      'Oil & Gas',  '₹4,200 Cr ($506M)'],
+    ['total',    'TotalEnergies','Oil & Gas',  '₹5,100 Cr ($614M)'],
+    ['pge',      'PG&amp;E',     'Utilities',  '₹2,800 Cr ($337M)'],
+    ['rio',      'Rio Tinto',    'Mining',     '₹3,400 Cr ($410M)'],
+    ['ntpc',     'NTPC',         'Utilities',  '₹1,800 Cr ($217M)'],
+    ['adani',    'Adani Green',  'Renewables', '₹2,100 Cr ($253M)'],
+  ];
+  const ratingLbl = { high:'Downgrade Risk', med:'Watch', mod:'Stable', low:'Upgrade Likely' };
+  bt.innerHTML = `<tr><th>Borrower</th><th>Sector</th><th>Exposure (EAD)</th><th>Rev. Impact</th><th>PD Change</th><th>EL (EAD×PD×LGD)</th><th>Rating Pressure</th></tr>` +
+    borrowerDefs.map(([key, name, sec, exp]) => {
+      const br = transBorrowerRow(key, sc);
+      const rBase = calcCredit(key, 'baseline');
+      const rSc   = calcCredit(key, sc);
+      const elChgAbs = Math.abs(rSc.el - rBase.el).toFixed(1);
+      const elSign   = rSc.el >= rBase.el ? '+$' : '-$';
+      return `<tr>
+        <td><b>${name}</b></td>
+        <td>${sec}</td>
+        <td>${exp}</td>
+        <td class="${br.rev.startsWith('+')?'dn':'up'}">${br.rev}</td>
+        <td class="${br.pd.startsWith('-')?'dn':'up'}">${br.pd}</td>
+        <td class="${rSc.el >= rBase.el ?'up':'dn'}">${elSign}${elChgAbs}M &nbsp;<span style="color:var(--text-muted);font-size:10px">(total $${rSc.el.toFixed(1)}M)</span></td>
+        <td><span class="badge ${br.risk}">${ratingLbl[br.risk]}</span></td>
+      </tr>`;
+    }).join('');
+
+  // Carbon price chart
+  mkChart('carbonChart','line',['2024','2026','2028','2030','2035','2040'],[
+    {label:'Net Zero 2050',data:[40,65,90,120,180,250],borderColor:GOLD,tension:.4,fill:false},
+    {label:'Below 2°C Del.',data:[40,55,75,100,140,180],borderColor:ORANGE,tension:.4,fill:false},
+    {label:'Below 2°C Imm.',data:[40,70,100,130,170,200],borderColor:AMBER,tension:.4,fill:false,borderDash:[4,2]},
+    {label:'Fragmented',data:[40,42,44,48,55,65],borderColor:BLUE,tension:.4,fill:false,borderDash:[2,2]},
+    {label:'Baseline',data:[40,40,40,40,40,40],borderColor:GREEN,tension:.4,fill:false,borderDash:[4,4]},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Year')},y:{grid:{color:'#1e2533'},title:axisTitle('Carbon Price ($/tonne CO₂)')}} });
+
+  // Stranded assets
+  const strandScale = { baseline:0.2, below2_immediate:0.8, below2_delayed:1.0, netzero:1.6, fragmented:0.4 };
+  const sf = strandScale[sc]||1;
+  mkChart('strandedChart','bar',['Energy','Mining','Utilities','Transport'],[
+    {label:'2030',data:[480*sf,120*sf,80*sf,40*sf].map(v=>Math.round(v)),backgroundColor:'rgba(239,68,68,.4)'},
+    {label:'2035',data:[820*sf,210*sf,130*sf,70*sf].map(v=>Math.round(v)),backgroundColor:'rgba(239,68,68,.6)'},
+    {label:'2040',data:[1400*sf,380*sf,220*sf,130*sf].map(v=>Math.round(v)),backgroundColor:'rgba(239,68,68,.85)'},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Sector')},y:{grid:{color:'#1e2533'},title:axisTitle('Stranded Asset Value ($B)')}} });
+
+  // Transition margin chart
+  const mScale = { baseline:0, below2_immediate:0.7, below2_delayed:1.0, netzero:1.6, fragmented:0.35 };
+  const mf = mScale[sc]||1;
+  mkChart('transitionChart','line',['2024','2026','2028','2030','2032','2035','2040'],[
+    {label:'Energy',data:[30,30-3*mf,30-6*mf,30-9*mf,30-12*mf,30-16*mf,30-20*mf].map(v=>+v.toFixed(1)),borderColor:RED,tension:.4,fill:false},
+    {label:'Utilities',data:[28,28-2*mf,28-4*mf,28-6*mf,28-7*mf,28-9*mf,28-11*mf].map(v=>+v.toFixed(1)),borderColor:ORANGE,tension:.4,fill:false},
+    {label:'Mining',data:[25,25-1.5*mf,25-3*mf,25-4*mf,25-6*mf,25-8*mf,25-10*mf].map(v=>+v.toFixed(1)),borderColor:AMBER,tension:.4,fill:false},
+    {label:'Baseline (Energy)',data:[30,30,31,31,32,32,33],borderColor:GREEN,tension:.4,fill:false,borderDash:[4,2]},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Year')},y:{grid:{color:'#1e2533'},title:axisTitle('EBITDA Margin (%)')}} });
+
+  // AI
+  const aiRows = (TRANS_AI[sc]||TRANS_AI.baseline).map(a=>`<div class="ai-insight-row"><div class="ai-icon ${a.cls}">${a.icon}</div><div style="font-size:12px;line-height:1.6">${a.text}</div></div>`).join('');
+  document.getElementById('transAIContent').innerHTML = aiRows;
+}
+
+// ═══════════════════════════════════════════════
+// PHYSICAL RISK
+// ═══════════════════════════════════════════════
+function updatePhysical() {
+  const hazard = document.getElementById('physHazard').value;
+  const rcp = document.getElementById('physRCP').value;
+  const d = PHYS_DATA[hazard]?.[rcp];
+  if (!d) return;
+
+  // Physical LGD uplift: New LGD = Base LGD + (Asset Damage % × 0.5)
+  const lgdUplift = +(d.dam * 0.5).toFixed(1);
+  // Recompute portfolio EL with physical LGD adjustment
+  const physPortfolioEL = +calcPortfolioEL('baseline', d.dam).toFixed(1);
+  const basePortfolioEL = +calcPortfolioEL('baseline', 0).toFixed(1);
+  const physELInc = +(physPortfolioEL - basePortfolioEL).toFixed(1);
+
+  // Display: PD shift from physical hazard (separate channel), LGD from damage formula
+  animateVal('ph-dam', d.dam + '%');
+  animateVal('ph-pd',  '+' + d.pd + '%');
+  animateVal('ph-lgd', '+' + lgdUplift + '%');
+  animateVal('ph-col', d.col + '%');
+
+  // Update radar title
+  const hazardLabels = { all:'All Hazards', flood:'Flood', heat:'Heat Stress', wildfire:'Wildfire', storm:'Storm/Cyclone', sealevel:'Sea Level Rise' };
+  const rcpLabels = { rcp85:'RCP 8.5', rcp45:'RCP 4.5', rcp26:'RCP 2.6' };
+  document.getElementById('physRadarTitle').textContent = `Physical Risk by Sector & Hazard Type (${hazardLabels[hazard]} · ${rcpLabels[rcp]})`;
+
+  // Update col headers for hazard type
+  if (hazard === 'all') {
+    document.getElementById('ph-col1').textContent = 'Flood';
+    document.getElementById('ph-col2').textContent = 'Heat';
+    document.getElementById('ph-col3').textContent = 'Storm';
+  } else {
+    document.getElementById('ph-col1').textContent = rcpLabels.rcp26;
+    document.getElementById('ph-col2').textContent = rcpLabels.rcp45;
+    document.getElementById('ph-col3').textContent = rcpLabels.rcp85;
+  }
+
+  // Asset value chart
+  const aData = PHYS_ASSET_DATA[hazard]?.[rcp] || PHYS_ASSET_DATA.all.rcp85;
+  const hlabels = hazard === 'all'
+    ? ['Flood (sel.RCP)','Heat (sel.RCP)','Composite','Baseline']
+    : [`${hazardLabels[hazard]} – High Sector`,`${hazardLabels[hazard]} – Med Sector`,`${hazardLabels[hazard]} – Composite`,'Baseline'];
+  const dColors = [BLUE, RED, ORANGE, GREEN];
+  mkChart('physicalChart','line',['2024','2026','2028','2030','2032','2035','2040'],
+    aData.map((data,i)=>({ label:hlabels[i], data, borderColor:dColors[i], tension:.4, fill:false, ...(i===3?{borderDash:[4,2]}:{}) })),
+    { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Year')},y:{grid:{color:'#1e2533'},title:axisTitle('Asset Value Index (2024 = 100)')}} }
+  );
+
+  // Radar
+  const rcpScale = { rcp85:1, rcp45:0.65, rcp26:0.35 };
+  const hazScale = { all:1, flood:1.1, heat:0.85, wildfire:1.2, storm:0.95, sealevel:0.75 };
+  const rf = (rcpScale[rcp]||1) * (hazScale[hazard]||1);
+  const radarBase = { Energy:85, 'Real Estate':72, Utilities:68, Mining:60, Transport:55, Financials:28, Agriculture:78 };
+  mkChart('physRadarChart','radar',Object.keys(radarBase),[
+    { label:'Physical Risk Score', data:Object.values(radarBase).map(v=>Math.min(100,Math.round(v*rf))),
+      backgroundColor:'rgba(239,68,68,.15)', borderColor:RED, pointBackgroundColor:RED }
+  ], { scales:{r:{grid:{color:'#1e2533'},pointLabels:{color:'#9ca3af',font:{size:10}},ticks:{backdropColor:'transparent',color:'#6b7280'},suggestedMin:0,suggestedMax:100}}, plugins:{legend:{display:false}} });
+
+  // AI
+  const aiRows = (PHYS_AI[hazard]||PHYS_AI.all).map(a=>`<div class="ai-insight-row"><div class="ai-icon ${a.cls}">${a.icon}</div><div style="font-size:12px;line-height:1.6">${a.text}</div></div>`).join('');
+  document.getElementById('physAIContent').innerHTML = aiRows;
+}
+
+// ═══════════════════════════════════════════════
+// STRESS TESTING — causal model
+// Carbon Price → Revenue Impact → EBITDA Impact → PD Increase → EL = EAD×PD×LGD
+// ═══════════════════════════════════════════════
+function updateStress() {
+  const carbonPrice = +document.getElementById('carbonSlider').value;
+  const temp        = +document.getElementById('tempSlider').value / 10;
+  const horiz       = +document.getElementById('horizSlider').value;
+  const conc        = +document.getElementById('concSlider').value;   // portfolio concentration in high-carbon sectors (%)
+
+  document.getElementById('cprice').textContent  = '$' + carbonPrice;
+  document.getElementById('tempval').textContent  = temp.toFixed(1) + '°C';
+  document.getElementById('horizval').textContent = horiz + ' yrs';
+  document.getElementById('concval').textContent  = conc + '%';
+
+  // ── Causal chain (portfolio level) ──
+  // Revenue Impact = -0.05 × (carbonPrice / 100)  → annualised %
+  // Scaled by concentration factor (more concentrated = more exposed)
+  const concScale    = conc / 40;                                   // 40% = baseline; higher = more sensitive
+  const revImpact    = -0.05 * (carbonPrice / 100) * concScale;     // fraction (negative)
+  const ebitdaImpact = revImpact * 1.4;                             // EBITDA drops 1.4× revenue
+  const ebitdaFrac   = Math.abs(ebitdaImpact);
+
+  // Temperature adds a physical risk overlay on LGD (asset damage channel)
+  const physDamage   = Math.max(0, (temp - 1.5) * 8);              // % damage rising with warming above 1.5°C
+  const lgdUplift    = physDamage * 0.5;                            // New LGD = Base LGD + (damage × 0.5)
+
+  // ── Per-counterparty stressed EL ──
+  const stressTable = [
+    { key:'chevron',  name:'Chevron',       sec:'Oil & Gas' },
+    { key:'total',    name:'TotalEnergies', sec:'Oil & Gas' },
+    { key:'pge',      name:'PG&E',          sec:'Utilities' },
+    { key:'rio',      name:'Rio Tinto',     sec:'Mining'    },
+    { key:'shell',    name:'Shell',         sec:'Oil & Gas' },
+    { key:'exxon',    name:'Exxon',         sec:'Oil & Gas' },
+    { key:'ntpc',     name:'NTPC',          sec:'Utilities' },
+    { key:'adani',    name:'Adani Green',   sec:'Renewables'},
+  ];
+
+  let totalBaseEL = 0, totalStressEL = 0, totalBaseRWA = 0, totalStressRWA = 0;
+  let tableRows = '';
+
+  stressTable.forEach(({ key, name, sec }) => {
+    const cpM = CP_MASTER[key];
+
+    // Baseline (no stress)
+    const baseResult   = calcCredit(key, 'baseline', 0);
+    const baseEL       = baseResult.el;
+    const basePD       = baseResult.pd;
+
+    // Map carbon price slider to nearest scenario for the engine
+    const stressScenario = carbonPrice <= 50  ? 'baseline' :
+                           carbonPrice <= 130 ? 'below2_immediate' :
+                           carbonPrice <= 160 ? 'below2_delayed'   : 'netzero';
+
+    // Run engine with physical damage from temperature slider
+    const stressResult = calcCredit(key, stressScenario, physDamage);
+
+    // Further scale PD by concentration factor on top of scenario result
+    let stressedPD = stressResult.pd * concScale;
+    stressedPD = Math.min(6.0, Math.max(0.1, +stressedPD.toFixed(2)));
+    const stressedLGD = stressResult.lgd; // includes both transition + physical LGD channels
+
+    const stressEL = +(cpM.eadUSD * (stressedPD/100) * (stressedLGD/100)).toFixed(2);
+
+    // Capital & RWA: Capital ≈ 12 × EL; RWA = Capital / 0.08
+    const baseCapital   = +(baseEL   * 12).toFixed(1);
+    const stressCapital = +(stressEL * 12).toFixed(1);
+    const baseRWA       = +(baseCapital   / 0.08).toFixed(0);
+    const stressRWA     = +(stressCapital / 0.08).toFixed(0);
+    const capAddon      = +(stressCapital - baseCapital).toFixed(1);
+    const pdChg = +(stressedPD - baseResult.pd).toFixed(2);
+
+    totalBaseEL   += baseEL;
+    totalStressEL += stressEL;
+    totalBaseRWA  += +baseRWA;
+    totalStressRWA+= +stressRWA;
+
+    const risk = stressEL > baseEL * 2.5 ? 'high' : stressEL > baseEL * 1.8 ? 'med' : stressEL > baseEL * 1.2 ? 'mod' : 'low';
+    const alertLbl = { high:'Critical', med:'Elevated', mod:'Moderate', low:'Low' };
+    tableRows += `<tr>
+      <td><b>${name}</b></td><td>${sec}</td>
+      <td class="neutral">$${baseEL.toFixed(1)}M</td>
+      <td class="${stressEL > baseEL ? 'up':'dn'}">$${stressEL.toFixed(1)}M</td>
+      <td class="${pdChg >= 0 ? 'up':'dn'}">${pdChg >= 0 ? '+':''}${pdChg}%</td>
+      <td class="up">$${capAddon.toFixed(1)}M</td>
+      <td><span class="badge ${risk}">${alertLbl[risk]}</span></td>
+    </tr>`;
+  });
+
+  // Portfolio KPI cards
+  const portfolioPD  = Math.min(6.0, +((totalStressEL / Object.values(CP_MASTER).reduce((s,c)=>s+c.eadUSD,0)) * 100 / 0.38).toFixed(2));
+  const rwaChangePct = totalBaseRWA > 0 ? Math.round((totalStressRWA - totalBaseRWA) / totalBaseRWA * 100) : 0;
+  const totalCapital  = +(totalStressEL * 12).toFixed(0);
+  const baseCapTotal  = +(totalBaseEL   * 12).toFixed(0);
+
+  animateVal('st-pd',  portfolioPD.toFixed(2) + '%');
+  animateVal('st-el',  '$' + totalStressEL.toFixed(1) + 'M');
+  animateVal('st-cap', '$' + totalCapital + 'M');
+  animateVal('st-rwa', '+' + rwaChangePct + '%');
+  document.getElementById('st-pd-s').textContent  = 'Baseline: ' + totalBaseEL > 0 ? ((totalBaseEL / Object.values(CP_MASTER).reduce((s,c)=>s+c.eadUSD,0))*100/0.35).toFixed(2)+'%' : '—';
+  document.getElementById('st-el-s').textContent  = 'Baseline: $' + totalBaseEL.toFixed(1) + 'M';
+  document.getElementById('st-cap-s').textContent = '+' + Math.round((totalCapital / Math.max(1,baseCapTotal) - 1)*100) + '% vs baseline';
+  document.getElementById('st-rwa-s').textContent = '$' + Math.round(totalBaseRWA) + 'M → $' + Math.round(totalStressRWA) + 'M';
+
+  // Active row in scenario table
+  document.getElementById('st-active-cp').textContent  = '$' + carbonPrice + '/t';
+  document.getElementById('st-active-el').textContent  = '$' + totalStressEL.toFixed(1) + 'M';
+  document.getElementById('st-active-cap').textContent = '$' + totalCapital + 'M';
+  document.getElementById('st-active-rwa').textContent = '+' + rwaChangePct + '%';
+
+  // Stress EL chart — show baseline and 4 carbon price scenarios for comparison
+  const years = ['2024','2026','2028','2030','2032','2035','2040'];
+  function projEL(cp_price, concPct) {
+    const rI  = -0.05 * (cp_price/100) * (concPct/40);
+    const eI  = rI * 1.4;
+    const eFr = Math.abs(eI);
+    return stressTable.map(({key}) => {
+      const cpM = CP_MASTER[key];
+      const s   = CP_REV_SENSITIVITY[key] || 1;
+      let pd = cpM.basePD * (1 + eFr * Math.abs(s));
+      if (s < 0) pd = Math.max(0.1, cpM.basePD * (1 - eFr * 0.3));
+      pd = Math.min(6.0, Math.max(0.1, pd));
+      return cpM.eadUSD * (pd/100) * (cpM.baseLGD/100);
+    }).reduce((a,b)=>a+b, 0);
+  }
+  // Build year-indexed paths (compound growth with horizon)
+  const baseELVal = projEL(0, 40);
+  const elPath = (cp_price, concPct) =>
+    years.map((_, i) => +(baseELVal + (projEL(cp_price, concPct) - baseELVal) * (i / (years.length - 1))).toFixed(1));
+
+  mkChart('stressChart','line', years, [
+    { label:'Baseline ($0/t)',         data: elPath(0,   40), borderColor:GREEN,  tension:.4, fill:false },
+    { label:`Active ($${carbonPrice}/t)`, data: elPath(carbonPrice, conc), borderColor:GOLD, tension:.4, fill:false, borderWidth:2.5 },
+    { label:'Severe ($200/t)',         data: elPath(200, 60), borderColor:ORANGE, tension:.4, fill:false, borderDash:[4,2] },
+    { label:'Extreme ($300/t)',        data: elPath(300, 70), borderColor:RED,    tension:.4, fill:false, borderDash:[2,2] },
+  ], { scales:{
+    x:{ grid:{color:'#1e2533'}, title:axisTitle('Year') },
+    y:{ grid:{color:'#1e2533'}, title:axisTitle('Portfolio Expected Loss ($M)'), beginAtZero:true }
+  }});
+
+  // Update counterparty stress table
+  document.getElementById('stressCounterpartyTable').innerHTML =
+    `<tr><th>Counterparty</th><th>Sector</th><th>Baseline EL</th><th>Stressed EL</th><th>PD Change</th><th>Capital Add-on</th><th>Alert</th></tr>` + tableRows;
+}
+
+// ═══════════════════════════════════════════════
+// STATIC CHARTS (AI + STRATEGY)
+// ═══════════════════════════════════════════════
+function initStaticCharts() {
+  mkChart('aiAccChart','line',['Q1 23','Q2 23','Q3 23','Q4 23','Q1 24','Q2 24','Q3 24','Q4 24'],[
+    {label:'PD Model',data:[88,89,90,91,92,93,94,94.2],borderColor:GREEN,tension:.4,fill:false},
+    {label:'LGD Model',data:[85,86,87,88,89,90,91,91.8],borderColor:BLUE,tension:.4,fill:false},
+    {label:'EL Model',data:[82,84,85,87,88,90,92,92.5],borderColor:AMBER,tension:.4,fill:false},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Quarter')},y:{grid:{color:'#1e2533'},title:axisTitle('Accuracy (%)'),min:80,max:100}} });
+
+  mkChart('decarChart','line',['2024','2026','2028','2030','2032','2035','2040','2050'],[
+    {label:'Current Trajectory',data:[100,96,93,90,88,84,79,70],borderColor:ORANGE,tension:.4,fill:false},
+    {label:'Target (Net Zero Aligned)',data:[100,90,80,68,55,40,22,0],borderColor:GREEN,tension:.4,fill:false,borderDash:[4,2]},
+    {label:'IPCC 1.5°C Budget',data:[100,88,75,60,44,25,8,0],borderColor:RED,tension:.4,fill:false,borderDash:[2,2]},
+  ], { scales:{x:{grid:{color:'#1e2533'},title:axisTitle('Year')},y:{grid:{color:'#1e2533'},title:axisTitle('Portfolio Carbon Intensity Index (2024=100)')}} });
+
+  // Credit score donut
+  if (charts['scoreDonut']) charts['scoreDonut'].destroy();
+  const scoreCtx = document.getElementById('scoreDonut');
+  if (scoreCtx) {
+    charts['scoreDonut'] = new Chart(scoreCtx, {
+      type:'doughnut',
+      data:{ labels:['Score','Remaining'], datasets:[{data:[62,38],backgroundColor:['rgba(245,158,11,.8)','rgba(30,37,51,.8)'],borderWidth:0}] },
+      options:{ responsive:false, cutout:'72%', plugins:{legend:{display:false},tooltip:{enabled:false}} }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const h=now.getHours().toString().padStart(2,'0');
+  const m=now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clockPill').textContent=`🕐 ${h}:${m} IST`;
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  // Seed overview KPIs from engine on first load
+  const initDeltas = calcScenarioDeltas(currentScenario);
+  const initBaseEL   = calcPortfolioEL('baseline');
+  const initStressEL = calcPortfolioEL(currentScenario);
+  const initElInc    = +(initStressEL - initBaseEL).toFixed(1);
+  const initRWA      = Object.keys(CP_MASTER).reduce((s,k)=>s+calcCredit(k,currentScenario).rwa,0);
+  document.getElementById('ov-pd').textContent  = (initDeltas.pdIncDisplay >= 0 ? '+':'') + initDeltas.pdIncDisplay.toFixed(1) + '%';
+  document.getElementById('ov-lgd').textContent = (initDeltas.lgdInc >= 0 ? '+':'') + initDeltas.lgdInc.toFixed(1) + '%';
+  document.getElementById('ov-el').textContent  = '+$' + Math.abs(initElInc).toFixed(1) + 'M';
+  document.getElementById('ov-rwa').textContent = '+$' + Math.round(initRWA) + 'M';
+  const initLift = initBaseEL > 0 ? (initStressEL - initBaseEL) / initBaseEL : 0;
+  document.getElementById('ov-geo-asia').textContent     = '+' + Math.round(initLift*1.5*100) + '% EL';
+  document.getElementById('ov-geo-us').textContent       = '+' + Math.round(initLift*1.0*100) + '% EL';
+  document.getElementById('ov-asia-insight').textContent = '+' + Math.round(initLift*1.5*100) + '% EL';
+  document.getElementById('ov-chev-insight').textContent = chevronInsightEL(currentScenario);
+
+  drawHeatmap(currentScenario);
+  updateSectorChart();
+  updateCounterparty();
+  updateTransition();
+  updatePhysical();
+  updateStress();
+  initStaticCharts();
+});
+</script>
+</body>
+</html>
